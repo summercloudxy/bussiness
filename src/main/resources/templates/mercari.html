@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!--th:text 为 Thymeleaf 属性，用于在展示文本-->
+<h1 th:text="迎您来到Thymeleaf">欢迎您访问静态页面 HTML</h1>
+
+<div class="row cl">
+    <label class="form-label col-xs-2 col-sm-2"><span class="c-red">*</span>商户编号：</label>
+    <div class="formControls col-xs-10 col-sm-10">
+        <select name="merchantNo" lay-search="" class="form-control input1" >
+            <option value="">请选择</option>
+            <option th:each="item:${brand}"
+                    th:value="${item}"
+                    th:text="${item}" value="1">
+            </option>
+
+        </select>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>品牌</th>
+            <th>关键字</th>
+            <th>描述</th>
+            <th>是否启用</th>
+            <th>查询间隔</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="searchCondition:${searchConditions}">
+            <td th:text="${searchCondition.id}"></td>
+            <td>[[${searchCondition.brand}]]</td>
+            <td><a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale'" th:text="${searchCondition.keyword}" target='_blank'></a></td>
+            <td th:text="${searchCondition.description}"></td>
+            <td th:text="${searchCondition.enable}==1?'是':'否'"></td>
+            <td th:text="${searchCondition.duration}"></td>
+            <td>
+<!--                <a class="btn btn-sm btn-primary" th:href="@{/emp/}+${emp.id}">编辑</a>-->
+<!--                <button th:attr="del_uri=@{/emp/}+${emp.id}" class="btn btn-sm btn-danger deleteBtn">删除-->
+<!--                </button>-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+</body>
+</html>

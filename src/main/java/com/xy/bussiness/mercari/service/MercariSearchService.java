@@ -1,0 +1,253 @@
+package com.xy.bussiness.mercari.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.xy.bussiness.mail.MyMailSender;
+import com.xy.bussiness.mercari.MercariCrawler;
+import com.xy.bussiness.mercari.apibean.ItemsItem;
+import com.xy.bussiness.mercari.constants.ConditionEnum;
+import com.xy.bussiness.mercari.mapper.MercariMapper;
+import com.xy.bussiness.mercari.mapper.MercariSearchConditionMapper;
+import com.xy.bussiness.mercari.mybatisservice.MercariItemRecordService;
+import com.xy.bussiness.mercari.mybatisservice.MercariSearchConditionService;
+import com.xy.bussiness.mercari.mybean.ItemRecord;
+import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+public class MercariSearchService {
+    @Autowired
+    private MercariCrawler mercariCrawler;
+    @Autowired
+    private MercariMapper mercariMapper;
+    @Autowired
+    private MyMailSender mailSender;
+    @Autowired
+    MercariItemRecordService itemRecordService;
+    @Autowired
+    MercariSearchConditionMapper searchConditionMapper;
+    @Autowired
+    MercariSearchConditionService mercariSearchConditionService;
+    @Value("${mercari.enable:true}")
+    private Boolean mercariEnable;
+
+    private LinkedBlockingQueue<MercariSearchCondition> queue = new LinkedBlockingQueue<>(1000);
+    private Date lastExecuteTime = new Date();
+    ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
+    ;
+
+    @PostConstruct
+    public void init() {
+        if (mercariEnable) {
+            LambdaQueryWrapper<MercariSearchCondition> queryWrapper = Wrappers.lambdaQuery();
+            LambdaQueryWrapper<MercariSearchCondition> eq = queryWrapper.eq(MercariSearchCondition::isEnable, true);
+            List<MercariSearchCondition> allSearchCondition = mercariSearchConditionService.list(eq);
+            for (MercariSearchCondition searchCondition : allSearchCondition) {
+                if (searchCondition.isEnable()) {
+                    MercariTask mercariTask = new MercariTask(searchCondition, queue);
+                    log.info("添加查询定时任务，查询关键字为{}，查询间隔为{}分钟", searchCondition.getBrand() + searchCondition.getDescription(), searchCondition.getDuration());
+                    scheduledExecutorService.scheduleWithFixedDelay(mercariTask, 0, searchCondition.getDuration(), TimeUnit.MINUTES);
+                }
+            }
+            new Thread(() -> execute()).start();
+        }
+    }
+
+
+    public void execute() {
+        while (true) {
+            try {
+                MercariSearchCondition poll = queue.take();
+                // 两次执行间隔要大于10s
+                long duration = new Date().getTime() - lastExecuteTime.getTime();
+                if (duration < 2 * 1000L) {
+                    Thread.sleep(2 * 1000L - duration);
+                }
+                log.info("开始查询关键字[{}]的产品", poll.getDescription());
+                List<ItemsItem> crawl = mercariCrawler.crawl(poll);
+                log.info("关键字[{}]搜索到[{}]条产品", poll.getDescription(), crawl.size());
+                if (!CollectionUtils.isEmpty(crawl)) {
+                    check(poll, crawl);
+                }
+                lastExecuteTime = new Date();
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        }
+
+    }
+
+
+    public void check(MercariSearchCondition searchCondition, List<ItemsItem> itemList) throws Exception {
+        List<ItemRecord> lastItemList = mercariMapper.getItemRecordsByCondition(searchCondition.getId());
+        Map<String, ItemRecord> oldItems = lastItemList.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity()));
+        List<ItemRecord> newItems = new ArrayList<>();
+        List<ItemRecord> currentAllItems = new ArrayList<>();
+        List<ItemRecord> priceItems = new ArrayList<>();
+        for (ItemsItem item : itemList) {
+            String mercariItemId = item.getId();
+            ItemRecord oldItem = oldItems.get(mercariItemId);
+            ItemRecord itemRecord = new ItemRecord();
+            itemRecord.setMercariItemId(mercariItemId);
+            itemRecord.setSearchConditionId(searchCondition.getId());
+            itemRecord.setCurrentPrice(Integer.valueOf(item.getPrice()));
+            itemRecord.setCreateDate(new Date(Long.parseLong(item.getCreated()) * 1000));
+            itemRecord.setUpdateDate(new Date(Long.parseLong(item.getUpdated()) * 1000));
+            if (StringUtils.isNotBlank(item.getItemConditionId())) {
+                itemRecord.setItemConditionId(Integer.valueOf(item.getItemConditionId()));
+            }
+            itemRecord.setMercariItemTitle(item.getName());
+            if (oldItem == null) {
+                itemRecord.setOriginPrice(Integer.valueOf(item.getPrice()));
+                itemRecord.setInterest(false);
+                newItems.add(itemRecord);
+            } else {
+                itemRecord.setInterest(oldItem.isInterest());
+                itemRecord.setId(oldItem.getId());
+                if (itemRecord.isInterest() && oldItem.getCurrentPrice() > itemRecord.getCurrentPrice()) {
+                    itemRecord.setOriginPrice(oldItem.getOriginPrice());
+                    priceItems.add(itemRecord);
+                }
+            }
+            currentAllItems.add(itemRecord);
+        }
+        if (!CollectionUtils.isEmpty(newItems)) {
+            log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
+            sendNewMail(searchCondition, newItems);
+            itemRecordService.saveBatch(newItems);
+//            mercariMapper.insertItemRecords(newItems);
+        }
+        if (!CollectionUtils.isEmpty(priceItems)) {
+            log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());
+            sendPriceMail(searchCondition, priceItems);
+            itemRecordService.updateBatchById(priceItems);
+//            mercariMapper.updateItemRecords(priceItems);
+        }
+    }
+
+
+    public void sendNewMail(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
+        String description = searchCondition.getDescription();
+        mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems));
+    }
+
+    public void sendPriceMail(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
+        mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems));
+    }
+
+
+    public String getNewContent(List<ItemRecord> recordList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
+        for (ItemRecord record : recordList) {
+
+            stringBuilder.append("<div style='display:flex;width:100%'>");
+            stringBuilder.append("<div style='flex: 1'>");
+            stringBuilder.append("<a href='https://jp.mercari.com/item/");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("_1.jpg'/></a>   ");
+            stringBuilder.append("</div>");
+            stringBuilder.append(" <div style='flex:1'>");
+            stringBuilder.append("<div>");
+            stringBuilder.append(record.getMercariItemTitle());
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            if (record.getItemConditionId() != null) {
+                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
+            }
+            stringBuilder.append("</div>");
+            stringBuilder.append("<div>");
+            stringBuilder.append("价格：").append(record.getCurrentPrice());
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=1&itemId=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>添加关注</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("</div>");
+            stringBuilder.append("</div>");
+
+        }
+        stringBuilder.append("</body><html>");
+        return stringBuilder.toString();
+    }
+
+
+    public String getPriceContent(List<ItemRecord> recordList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
+        for (ItemRecord record : recordList) {
+            stringBuilder.append("<div style='display:flex;width:100%'>");
+            stringBuilder.append("<div style='flex: 1'>");
+            stringBuilder.append("<a href='https://jp.mercari.com/item/");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("_1.jpg'/></a>   ");
+            stringBuilder.append("</div>");
+            stringBuilder.append(" <div style='flex:1'>");
+            stringBuilder.append("<div>");
+            stringBuilder.append(record.getMercariItemTitle());
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            if (record.getItemConditionId() != null) {
+                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
+            }
+            stringBuilder.append("</div>");
+            stringBuilder.append("<div>");
+            stringBuilder.append(record.getOriginPrice()).append("->").append(record.getCurrentPrice());
+
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=0&itemId=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>不再关注</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("</div>");
+            stringBuilder.append("</div>");
+
+        }
+        stringBuilder.append("</body><html>");
+        return stringBuilder.toString();
+    }
+
+
+}
