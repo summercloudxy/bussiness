@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SearchRequest {
+public class SearchItemListRequest {
 	private List<Object> defaultDatasets;
 	private SearchCondition searchCondition;
 	private String serviceFrom;

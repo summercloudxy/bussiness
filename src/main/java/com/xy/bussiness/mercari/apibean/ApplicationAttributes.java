@@ -1,5 +1,5 @@
 package com.xy.bussiness.mercari.apibean;
 
-public class Meta{
+public class ApplicationAttributes{
 
 }

@@ -2,7 +2,7 @@ package com.xy.bussiness.mercari.apibean;
 
 import java.util.List;
 
-public class ItemsResponse {
+public class ItemListResponse {
 	private List<ComponentsItem> components;
 	private Meta meta;
 	private List<ItemsItem> items;

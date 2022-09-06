@@ -27,7 +27,6 @@
                             "</td><td>"+searchconditionlist[i].description+
                             "</td><td>"+searchconditionlist[i].enable+
                             "</td><td>"+searchconditionlist[i].duration+
-                            "</td><td><a className='btn btn-sm btn-primary' href='/interest/item/" + searchconditionlist[i].id +"' target='_blank'>已关注产品</a>"+
 
                             "</td></tr>"
                         )
@@ -45,45 +44,34 @@
 
 <!--<script type="text/javascript" src="/static/layui/layui.js" charset="utf-8"></script>-->
 
-<div class="row cl">
-    <label class="form-label col-xs-2 col-sm-2"><span class="c-red">*</span>商户编号：</label>
-    <div class="formControls col-xs-10 col-sm-10">
-        <select id="mercaribrand" name="mercaribrand" lay-search="" class="form-control input1" onchange="brandchange()">
-            <option value="">请选择</option>
-            <option th:each="item:${brand}"
-                    th:value="${item}"
-                    th:text="${item}" value="1">
-            </option>
 
-        </select>
-    </div>
-</div>
 
 <div class="table-responsive">
-    <table class="conditionTable" id="conditionTable" border='1'>
+    <table class="itemTable" id="itemTable" border='1'>
         <thead>
         <tr>
-            <th>#</th>
-            <th>品牌</th>
-            <th>关键字</th>
-            <th>描述</th>
-            <th>是否启用</th>
-            <th>查询间隔</th>
+            <th>煤炉id</th>
+            <th>标题</th>
+            <th>图片</th>
+            <th>原始价格</th>
+            <th>当前价格</th>
+            <th> </th>
         </tr>
         </thead>
-        <tbody id="conditionTableBody">
+        <tbody id="itemTableBody">
 
-        <tr th:each="searchCondition:${searchConditions}">
-            <td th:text="${searchCondition.id}"></td>
-            <td>[[${searchCondition.brand}]]</td>
-            <td><a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale'" th:text="${searchCondition.keyword}" target='_blank'></a></td>
-            <td th:text="${searchCondition.description}"></td>
-            <td th:text="${searchCondition.enable}==1?'是':'否'"></td>
-            <td th:text="${searchCondition.duration}"></td>
+        <tr th:each="item:${itemList}">
+            <td th:text="${item.mercariItemId}"></td>
+            <td><a th:href="'https://jp.mercari.com/item/' + ${item.mercariItemId}" th:text="${item.mercariItemTitle}" target='_blank'></a></td>
+            <td><img th:src="'http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/' + ${item.mercariItemId} + '_1.jpg'"></td>
+            <td th:text="${item.originPrice}"></td>
+            <td th:text="${item.currentPrice}"></td>
             <td>
-                <a class="btn btn-sm btn-primary" th:href="@{/interest/item/}+${searchCondition.id}" target="_blank">已关注产品</a>
-<!--                <button th:attr="del_uri=@{/mercari/setInterest}+${emp.id}" class="btn btn-sm btn-danger deleteBtn">删除-->
-<!--                </button>-->
+            <td>
+                <a class="btn btn-sm btn-primary" th:href="@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}"  target='_blank'>不再关注</a>
+                <!--                <button th:attr="del_uri=@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}" class="btn btn-sm btn-danger deleteBtn">不再关注-->
+                <!--                </button>-->
+            </td>
             </td>
         </tr>
         </tbody>
