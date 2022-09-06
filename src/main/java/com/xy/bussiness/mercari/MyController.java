@@ -78,11 +78,6 @@ public class MyController {
     }
 
 
-    @GetMapping("/mercari/dpop")
-    public String updateDpop(String dpop){
-        mercariCrawler.setDpop(dpop);
-        return "更新成功";
-    }
 
 
     @GetMapping("/searchCondition/list")

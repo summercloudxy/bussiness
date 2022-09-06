@@ -78,8 +78,8 @@ public class MercariSearchService {
                 MercariSearchCondition poll = queue.take();
                 // 两次执行间隔要大于10s
                 long duration = new Date().getTime() - lastExecuteTime.getTime();
-                if (duration < 2 * 1000L) {
-                    Thread.sleep(2 * 1000L - duration);
+                if (duration < 1 * 1000L) {
+                    Thread.sleep(1 * 1000L - duration);
                 }
                 log.info("开始查询关键字[{}]的产品", poll.getDescription());
                 List<ItemsItem> crawl = mercariCrawler.crawl(poll);

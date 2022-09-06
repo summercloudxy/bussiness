@@ -9,10 +9,13 @@ import com.xy.bussiness.mercari.mybatisservice.MercariItemRecordService;
 import com.xy.bussiness.mercari.mybatisservice.MercariSearchConditionService;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
+import com.xy.bussiness.mercari.service.DpopService;
+import com.xy.bussiness.mercari.service.MercariSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -31,6 +34,10 @@ public class MercariRestController {
     private MercariItemRecordService itemRecordService;
     @Autowired
     private MercariCrawler mercariCrawler;
+    @Autowired
+    private DpopService dpopService;
+    @Autowired
+    private MercariSearchService mercariSearchService;
 
     @GetMapping("/mercari/searchCondition")
     public List<MercariSearchCondition>  index(String brand){
@@ -68,5 +75,16 @@ public class MercariRestController {
     public ItemData getItemDetail(String itemId){
         ItemData itemDetail = mercariCrawler.getItemDetail(itemId);
         return itemDetail;
+    }
+
+    @PostMapping("/mercari/dpop")
+    public void updateDpop(){
+        dpopService.updateDpop();
+    }
+
+
+    @GetMapping("/mercari/dpop")
+    public String getDpop(){
+       return mercariCrawler.getDpop();
     }
 }

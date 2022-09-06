@@ -88,6 +88,10 @@ public class MercariCrawler  {
         this.dpop = dpop;
     }
 
+    public String getDpop(){
+        return dpop;
+    }
+
 
     public ItemData getItemDetail(String itemId){
 
