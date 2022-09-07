@@ -2,15 +2,11 @@ package com.xy.bussiness.rakuten;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.xy.bussiness.mail.MyMailSender;
+import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.rakuten.mybatisservice.RakutenItemRecordService;
 import com.xy.bussiness.rakuten.mybean.RakutenItemRecord;
 import com.xy.bussiness.rakuten.mybean.RakutenSearchCondition;
 import com.xy.bussiness.rakuten.service.RakutenService;
-import com.xy.bussiness.yahoo.YahooService;
-import com.xy.bussiness.yahoo.mybatisservice.YahooItemRecordService;
-import com.xy.bussiness.yahoo.mybean.YahooItemRecord;
-import com.xy.bussiness.yahoo.mybean.YahooSearchCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

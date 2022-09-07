@@ -2,10 +2,11 @@ package com.xy.bussiness.mercari.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.xy.bussiness.mail.MyMailSender;
+import com.xy.bussiness.mercari.notification.NotificationService;
+import com.xy.bussiness.notification.WindowsNotification;
+import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.mercari.MercariCrawler;
 import com.xy.bussiness.mercari.apibean.ItemsItem;
-import com.xy.bussiness.mercari.constants.ConditionEnum;
 import com.xy.bussiness.mercari.mapper.MercariMapper;
 import com.xy.bussiness.mercari.mapper.MercariSearchConditionMapper;
 import com.xy.bussiness.mercari.mybatisservice.MercariItemRecordService;
@@ -46,6 +47,10 @@ public class MercariSearchService {
     MercariSearchConditionMapper searchConditionMapper;
     @Autowired
     MercariSearchConditionService mercariSearchConditionService;
+    @Autowired
+    WindowsNotification windowsNotification;
+    @Autowired
+    NotificationService notificationService;
     @Value("${mercari.enable:true}")
     private Boolean mercariEnable;
 
@@ -131,123 +136,18 @@ public class MercariSearchService {
         }
         if (!CollectionUtils.isEmpty(newItems)) {
             log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
-            sendNewMail(searchCondition, newItems);
+            notificationService.sendNew(searchCondition, newItems);
             itemRecordService.saveBatch(newItems);
 //            mercariMapper.insertItemRecords(newItems);
         }
         if (!CollectionUtils.isEmpty(priceItems)) {
             log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());
-            sendPriceMail(searchCondition, priceItems);
+            notificationService.sendPrice(searchCondition, priceItems);
             itemRecordService.updateBatchById(priceItems);
 //            mercariMapper.updateItemRecords(priceItems);
         }
     }
 
-
-    public void sendNewMail(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
-        String description = searchCondition.getDescription();
-        mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems));
-    }
-
-    public void sendPriceMail(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
-        mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems));
-    }
-
-
-    public String getNewContent(List<ItemRecord> recordList) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
-        for (ItemRecord record : recordList) {
-
-            stringBuilder.append("<div style='display:flex;width:100%'>");
-            stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://jp.mercari.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("_1.jpg'/></a>   ");
-            stringBuilder.append("</div>");
-            stringBuilder.append(" <div style='flex:1'>");
-            stringBuilder.append("<div>");
-            stringBuilder.append(record.getMercariItemTitle());
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            if (record.getItemConditionId() != null) {
-                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
-            }
-            stringBuilder.append("</div>");
-            stringBuilder.append("<div>");
-            stringBuilder.append("价格：").append(record.getCurrentPrice());
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=1&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>添加关注</a>");
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("</div>");
-            stringBuilder.append("</div>");
-
-        }
-        stringBuilder.append("</body><html>");
-        return stringBuilder.toString();
-    }
-
-
-    public String getPriceContent(List<ItemRecord> recordList) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
-        for (ItemRecord record : recordList) {
-            stringBuilder.append("<div style='display:flex;width:100%'>");
-            stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://jp.mercari.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("_1.jpg'/></a>   ");
-            stringBuilder.append("</div>");
-            stringBuilder.append(" <div style='flex:1'>");
-            stringBuilder.append("<div>");
-            stringBuilder.append(record.getMercariItemTitle());
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            if (record.getItemConditionId() != null) {
-                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
-            }
-            stringBuilder.append("</div>");
-            stringBuilder.append("<div>");
-            stringBuilder.append(record.getOriginPrice()).append("->").append(record.getCurrentPrice());
-
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=0&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>不再关注</a>");
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("</div>");
-            stringBuilder.append("</div>");
-
-        }
-        stringBuilder.append("</body><html>");
-        return stringBuilder.toString();
-    }
 
 
 }

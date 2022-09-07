@@ -1,6 +1,6 @@
 package com.xy.bussiness.mercari;
 
-import com.xy.bussiness.mail.MyMailSender;
+import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.mercari.apibean.*;
 import com.xy.bussiness.mercari.constants.CategoryEnum;
 import com.xy.bussiness.mercari.mybean.MercariSearchCondition;

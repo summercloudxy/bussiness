@@ -2,7 +2,7 @@ package com.xy.bussiness.yahoo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.xy.bussiness.mail.MyMailSender;
+import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.yahoo.mybatisservice.YahooItemRecordService;
 import com.xy.bussiness.yahoo.mybean.YahooItemRecord;
 import com.xy.bussiness.yahoo.mybean.YahooSearchCondition;

@@ -1,4 +1,4 @@
-package com.xy.bussiness.mail;
+package com.xy.bussiness.notification.mail;
 
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import org.springframework.beans.factory.annotation.Autowired;
