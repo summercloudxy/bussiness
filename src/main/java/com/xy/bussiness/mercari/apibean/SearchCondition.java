@@ -22,7 +22,7 @@ public class SearchCondition{
 	private List<Object> brandId;
 	private List<Object> attributes;
 	private String keyword;
-	private List<Object> itemConditionId;
+	private List<Integer> itemConditionId;
 	private List<Integer> categoryId;
 	private String order;
 	private List<String> status;

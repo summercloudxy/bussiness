@@ -30,4 +30,15 @@ public enum ConditionEnum {
         }
         return "";
     }
+
+
+    public static Integer getIdByName(String name){
+        ConditionEnum conditionEnum = ConditionEnum.valueOf(name);
+        if (conditionEnum != null){
+            return conditionEnum.getId();
+        }
+        else {
+            return null;
+        }
+    }
 }

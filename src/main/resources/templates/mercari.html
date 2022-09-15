@@ -8,26 +8,91 @@
     <script type="text/javascript" src="/layui/layui.js" charset="utf-8"></script>
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
     <script type="text/javascript">
-             function brandchange(){
+        function brandchange() {
             var brand = $('select option:selected').val();
             $.ajax({
-                url : '/mercari/searchCondition?brand=' + brand,
-                type : 'get',
-                dataType : 'json',
+                url: '/mercari/searchCondition?brand=' + brand,
+                type: 'get',
+                dataType: 'json',
                 async: false,
                 // data : {'userName':userName},
-                success : function(searchconditionlist){
+                success: function (searchconditionlist) {
                     $("#conditionTableBody").html('')
                     for (var i in searchconditionlist) {
                         $("#conditionTableBody").append(
-                            "<tr><td>"+searchconditionlist[i].id+
-                            "</td><td>"+searchconditionlist[i].brand+
-                            "</td><td><a href='https://jp.mercari.com/search?keyword=" +searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale' target='_blank'>" + searchconditionlist[i].keyword + "</a>"+
+                            "<tr><td>" + searchconditionlist[i].id +
+                            "</td><td>" + searchconditionlist[i].brand +
+                            "</td><td><a href='https://jp.mercari.com/search?keyword=" + searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale' target='_blank'>" + searchconditionlist[i].keyword + "</a>" +
 
-                            "</td><td>"+searchconditionlist[i].description+
-                            "</td><td>"+searchconditionlist[i].enable+
-                            "</td><td>"+searchconditionlist[i].duration+
-                            "</td><td><a className='btn btn-sm btn-primary' href='/interest/item/" + searchconditionlist[i].id +"' target='_blank'>已关注产品</a>"+
+                            "</td><td>" + searchconditionlist[i].description +
+                            "</td><td>" + searchconditionlist[i].enable +
+                            "</td><td>" + searchconditionlist[i].duration +
+
+
+                            "</td><td>" +
+                            "<p>" +
+                            "<input id='HUAZHUANGPIN' type='checkbox' value='HUAZHUANGPIN' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('HUAZHUANGPIN')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPIN'>化妆品</label>" +
+                            "</p>" +
+
+                            "<p>" +
+                            "<input id='DIZHUANGALL' type='checkbox' value='DIZHUANGALL' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('DIZHUANGALL')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANGALL'>底妆全部</label>" +
+                            "<input id='JICHU' type='checkbox' value='JICHU' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('JICHU')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='JICHU'>基础</label>" +
+                            "<input id='DIZHUANG' type='checkbox' value='DIZHUANG' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('DIZHUANG')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANG'>底妆</label>" +
+                            "<input id='XIANGFEN' type='checkbox' value='XIANGFEN' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('XIANGFEN')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='XIANGFEN'>香粉</label>" +
+                            "<input id='DIZHUANGOTHER' type='checkbox' value='DIZHUANGOTHER' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('DIZHUANGOTHER')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANGOTHER'>底妆其他</label>" +
+                            "</p>" +
+
+                            "<p>" +
+                            "<input id='HUAZHUANGPINALL' type='checkbox' value='HUAZHUANGPINALL' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('HUAZHUANGPINALL')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPINALL'>化妆品全部</label>" +
+                            "<input id='YANYING' type='checkbox' value='YANYING' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('YANYING')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='YANYING'>眼影</label>" +
+                            "<input id='YANXIANBI' type='checkbox' value='YANXIANBI' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('YANXIANBI')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='YANXIANBI'>眼线笔</label>" +
+                            "<input id='KOUHONG' type='checkbox' value='KOUHONG' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('KOUHONG')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='KOUHONG'>口红</label>" +
+                            "<input id='CHUNCAI' type='checkbox' value='CHUNCAI' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('CHUNCAI')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='CHUNCAI'>唇彩</label>" +
+                            "<input id='LIANJIA' type='checkbox' value='LIANJIA' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('LIANJIA')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='LIANJIA'>脸颊</label>" +
+                            "<input id='LIANSE' type='checkbox' value='LIANSE' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('LIANSE')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='LIANSE'>脸色</label>" +
+
+                            "<input id='HUAZHUANGPINOTHER' type='checkbox' value='HUAZHUANGPINOTHER' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].categoryList.indexOf('HUAZHUANGPINOTHER')>-1)? 'checked':'') +
+                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPINOTHER'>化妆品其他</label>" +
+                            "</p>" +
+
+
+
+                            "</td><td><input id='QUANXIN' type='checkbox' value='QUANXIN' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].conditionList.indexOf('QUANXIN')>-1)? 'checked':'') +
+                            " onClick='OncheckConditionBox(this)'><label htmlFor='QUANXIN'>全新</label>" +
+
+                            "<input id='JINQUANXIN' type='checkbox' value='JINQUANXIN' name='" + searchconditionlist[i].id +
+                            "' " + ( (searchconditionlist[i].conditionList.indexOf('JINQUANXIN')>-1)? 'checked':'') +
+                            "' onClick='OncheckConditionBox(this)'><label htmlFor='JINQUANXIN'>接近全新</label>" +
+
+                            "</td><td><a className='btn btn-sm btn-primary' href='/interest/item/" + searchconditionlist[i].id + "' target='_blank'>已关注产品</a>" +
 
                             "</td></tr>"
                         )
@@ -36,6 +101,25 @@
                 }
             });
 
+        }
+
+
+        function OncheckConditionBox(e) {
+            $.ajax({
+                url: '/mercari/updateCondition?id=' + e.name + '&condition=' + e.id + "&enable=" + e.checked,
+                type: 'get',
+                dataType: 'json',
+                async: false
+            });
+        }
+
+        function OncheckCategoryBox(e) {
+            $.ajax({
+                url: '/mercari/updateCategory?id=' + e.name + '&category=' + e.id + "&enable=" + e.checked,
+                type: 'get',
+                dataType: 'json',
+                async: false
+            });
         }
     </script>
 </head>
@@ -48,7 +132,8 @@
 <div class="row cl">
     <label class="form-label col-xs-2 col-sm-2"><span class="c-red">*</span>商户编号：</label>
     <div class="formControls col-xs-10 col-sm-10">
-        <select id="mercaribrand" name="mercaribrand" lay-search="" class="form-control input1" onchange="brandchange()">
+        <select id="mercaribrand" name="mercaribrand" lay-search="" class="form-control input1"
+                onchange="brandchange()">
             <option value="">请选择</option>
             <option th:each="item:${brand}"
                     th:value="${item}"
@@ -69,6 +154,9 @@
             <th>描述</th>
             <th>是否启用</th>
             <th>查询间隔</th>
+            <th>类别</th>
+            <th>查询状态</th>
+            <th>*</th>
         </tr>
         </thead>
         <tbody id="conditionTableBody">
@@ -76,20 +164,79 @@
         <tr th:each="searchCondition:${searchConditions}">
             <td th:text="${searchCondition.id}"></td>
             <td>[[${searchCondition.brand}]]</td>
-            <td><a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale'" th:text="${searchCondition.keyword}" target='_blank'></a></td>
+            <td>
+                <a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale'"
+                   th:text="${searchCondition.keyword}" target='_blank'></a></td>
             <td th:text="${searchCondition.description}"></td>
             <td th:text="${searchCondition.enable}==1?'是':'否'"></td>
             <td th:text="${searchCondition.duration}"></td>
             <td>
+                <p>
+                <input id="HUAZHUANGPIN" type="checkbox" value="HUAZHUANGPIN" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPIN')}"
+                       onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPIN">化妆品/香水/美容</label>
+                </p>
+                <p>
+                <input id="DIZHUANGALL" type="checkbox" value="DIZHUANGALL" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('DIZHUANGALL')}"
+                       onclick="OncheckCategoryBox(this)"><label for="DIZHUANGALL">底妆全部</label>
+                <input id="JICHU" type="checkbox" value="JICHU" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('JICHU')}"
+                       onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPIN">基础</label>
+                <input id="DIZHUANG" type="checkbox" value="DIZHUANG" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('DIZHUANG')}"
+                       onclick="OncheckCategoryBox(this)"><label for="DIZHUANG">底妆</label>
+                <input id="XIANGFEN" type="checkbox" value="XIANGFEN" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('XIANGFEN')}"
+                       onclick="OncheckCategoryBox(this)"><label for="XIANGFEN">香粉</label>
+                <input id="DIZHUANGOTHER" type="checkbox" value="DIZHUANGOTHER" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('DIZHUANGOTHER')}"
+                       onclick="OncheckCategoryBox(this)"><label for="DIZHUANGOTHER">底妆其他</label>
+                </p>
+                <p>
+                <input id="HUAZHUANGPINALL" type="checkbox" value="HUAZHUANGPINALL" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPINALL')}"
+                       onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPINALL">化妆品全部</label>
+                <input id="YANYING" type="checkbox" value="YANYING" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('YANYING')}"
+                       onclick="OncheckCategoryBox(this)"><label for="YANYING">眼影</label>
+                <input id="YANXIANBI" type="checkbox" value="YANXIANBI" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('YANXIANBI')}"
+                       onclick="OncheckCategoryBox(this)"><label for="YANXIANBI">眼线笔</label>
+                <input id="KOUHONG" type="checkbox" value="KOUHONG" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('KOUHONG')}"
+                       onclick="OncheckCategoryBox(this)"><label for="KOUHONG">口红</label>
+                <input id="CHUNCAI" type="checkbox" value="CHUNCAI" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('CHUNCAI')}"
+                       onclick="OncheckCategoryBox(this)"><label for="CHUNCAI">唇彩</label>
+                <input id="LIANJIA" type="checkbox" value="LIANJIA" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('LIANJIA')}"
+                       onclick="OncheckCategoryBox(this)"><label for="LIANJIA">脸颊</label>
+                <input id="LIANSE" type="checkbox" value="LIANSE" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('LIANSE')}"
+                       onclick="OncheckCategoryBox(this)"><label for="LIANSE">脸色</label>
+                <input id="HUAZHUANGPINOTHER" type="checkbox" value="HUAZHUANGPINOTHER" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPINOTHER')}"
+                       onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPINOTHER">化妆品其他</label>
+                </p>
+            </td>
+            <td>
+                <input id="QUANXIN" type="checkbox" value="QUANXIN" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.conditionList.contains('QUANXIN')}"
+                       onclick="OncheckConditionBox(this)"><label for="QUANXIN">全新</label>
+                <input id="JINQUANXIN" type="checkbox" value="JINQUANXIN" th:name="${searchCondition.id}"
+                       th:attr="checked=${searchCondition.conditionList.contains('JINQUANXIN')}"
+                       onclick="OncheckConditionBox(this)"><label for="JINQUANXIN">接近全新</label>
+            </td>
+            <td>
                 <a class="btn btn-sm btn-primary" th:href="@{/interest/item/}+${searchCondition.id}" target="_blank">已关注产品</a>
-<!--                <button th:attr="del_uri=@{/mercari/setInterest}+${emp.id}" class="btn btn-sm btn-danger deleteBtn">删除-->
-<!--                </button>-->
+                <!--                <button th:attr="del_uri=@{/mercari/setInterest}+${emp.id}" class="btn btn-sm btn-danger deleteBtn">删除-->
+                <!--                </button>-->
             </td>
         </tr>
         </tbody>
     </table>
 </div>
-
 
 
 </body>

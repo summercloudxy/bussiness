@@ -1,5 +1,6 @@
 package com.xy.bussiness.mercari;
 
+import com.xy.bussiness.mercari.constants.ConditionEnum;
 import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.mercari.apibean.*;
 import com.xy.bussiness.mercari.constants.CategoryEnum;
@@ -56,6 +57,11 @@ public class MercariCrawler  {
             String[] split = StringUtils.split(mercariSearchCondition.getSearchCategory(), ",");
             List<Integer> collect = Arrays.stream(split).map(CategoryEnum::getIdByName).filter(Objects::nonNull).collect(Collectors.toList());
             searchCondition.setCategoryId(collect);
+        }
+        if (StringUtils.isNotBlank(mercariSearchCondition.getItemCondition())){
+            String[] split = StringUtils.split(mercariSearchCondition.getItemCondition(), ",");
+            List<Integer> collect = Arrays.stream(split).map(ConditionEnum::getIdByName).filter(Objects::nonNull).collect(Collectors.toList());
+            searchCondition.setItemConditionId(collect);
         }
         searchItemListRequest.setSearchCondition(searchCondition);
 

@@ -24,12 +24,14 @@ public class MercariPageController {
     private MercariSearchConditionService mercariSearchConditionService;
     @Autowired
     private MercariItemRecordService itemRecordService;
+    @Autowired
+    private MercariRestController mercariRestController;
 
     @GetMapping("/mercari")
     public String index(Model model){
         List<String> mercariBrandList = getMercariBrandList();
         model.addAttribute("brand",mercariBrandList);
-        List<MercariSearchCondition> mercariKeyWord = getMercariKeyWord(null, null);
+        List<MercariSearchCondition> mercariKeyWord = mercariRestController.getSearchConditionList(null);
         model.addAttribute("searchConditions",mercariKeyWord);
         return "/mercari";
     }
