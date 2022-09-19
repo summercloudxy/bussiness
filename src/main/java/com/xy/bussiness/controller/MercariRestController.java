@@ -95,7 +95,7 @@ public class MercariRestController {
     }
 
     @PostMapping("/mercari/dpop")
-    public void updateDpop(){
+    public void updateDpop() throws InterruptedException {
         dpopService.updateDpop();
     }
 
@@ -153,4 +153,6 @@ public class MercariRestController {
         wrapper.eq(MercariSearchCondition::getId,id);
         mercariSearchConditionService.update(wrapper);
     }
+
+
 }

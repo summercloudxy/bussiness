@@ -20,6 +20,9 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
@@ -28,15 +31,25 @@ public class DpopService  {
     MercariCrawler mercariCrawler;
     ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     ;
+    volatile boolean dpopUpdated= false;
+    Condition condition = new ReentrantLock().newCondition();
 
     @PostConstruct
     public void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(this::updateDpop, 0,1, TimeUnit.DAYS);
+        scheduledExecutorService.scheduleWithFixedDelay(()-> {
+            try {
+                this.updateDpop();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, 0,1, TimeUnit.DAYS);
     }
 
 
 
-    public void updateDpop() {
+    public void updateDpop() throws InterruptedException {
+
+
         System.setProperty("webdriver.chrome.driver", "C://Users//admin//Desktop//chromedriver_win32//chromedriver.exe");
         ChromeDriver chromeDriver = new ChromeDriver();
 
@@ -67,11 +80,16 @@ public class DpopService  {
                 if (StringUtils.isNotBlank(dPoP)) {
                     mercariCrawler.setDpop(dPoP);
                     log.info("更新Dpop");
+                    dpopUpdated = true;
                 }
             }
         });
 
         chromeDriver.get("https://jp.mercari.com/search?keyword=chanel&order=desc&sort=created_time&t3_category_id=789%2C792&category_id=789%2C792&t1_category_id=6&t2_category_id=88&item_condition_id=1%2C2&status=on_sale");
-
+        while (!dpopUpdated) {
+            Thread.sleep(2000);
+        }
+        dpopUpdated = false;
+        chromeDriver.close();
     }
 }

@@ -50,23 +50,30 @@
     <table class="itemTable" id="itemTable" border='1'>
         <thead>
         <tr>
+            <th>序号</th>
             <th>煤炉id</th>
             <th>标题</th>
             <th>图片</th>
             <th>原始价格</th>
             <th>当前价格</th>
-            <th> </th>
+            <th>购买</th>
+            <th>不再关注</th>
         </tr>
         </thead>
         <tbody id="itemTableBody">
 
         <tr th:each="item:${itemList}">
+            <td th:text="${itemStat.index}"></td>
             <td th:text="${item.mercariItemId}"></td>
             <td><a th:href="'https://jp.mercari.com/item/' + ${item.mercariItemId}" th:text="${item.mercariItemTitle}" target='_blank'></a></td>
             <td><img th:src="'http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/' + ${item.mercariItemId} + '_1.jpg'"></td>
             <td th:text="${item.originPrice}"></td>
             <td th:text="${item.currentPrice}"></td>
             <td>
+                <a class="btn btn-sm btn-primary" th:href="@{http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=}+${item.mercariItemId}"  target='_blank'>手机</a>
+
+                <a class="btn btn-sm btn-primary" th:href="@{http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=}+${item.mercariItemId}"  target='_blank'>电脑</a>
+            </td>
             <td>
                 <a class="btn btn-sm btn-primary" th:href="@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}"  target='_blank'>不再关注</a>
                 <!--                <button th:attr="del_uri=@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}" class="btn btn-sm btn-danger deleteBtn">不再关注-->

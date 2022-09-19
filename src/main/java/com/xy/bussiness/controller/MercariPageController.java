@@ -69,6 +69,9 @@ public class MercariPageController {
 
     @GetMapping("/interest/item/{conditionId}")
     public String getInterestItemPage(Model model,@PathVariable Integer conditionId){
+        if (conditionId <0){
+            conditionId = null;
+        }
         List<ItemRecord> interestItem = getInterestItem(conditionId);
         model.addAttribute("itemList",interestItem);
         return "/mercariitem";
@@ -78,7 +81,9 @@ public class MercariPageController {
     public List<ItemRecord> getInterestItem(Integer conditionId){
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.eq(ItemRecord::isInterest,true);
-        queryWrapper.eq(ItemRecord::getSearchConditionId,conditionId);
+        if (conditionId != null) {
+            queryWrapper.eq(ItemRecord::getSearchConditionId, conditionId);
+        }
         return itemRecordService.list(queryWrapper);
     }
 

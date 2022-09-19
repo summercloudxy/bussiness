@@ -82,6 +82,12 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
+            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>电脑端购买</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
             stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=1&itemId=");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>添加关注</a>");
@@ -128,6 +134,13 @@ public class NotificationService {
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>电脑端购买</a>");
+            stringBuilder.append("</div>");
+
 
             stringBuilder.append("<div>");
             stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=0&itemId=");
