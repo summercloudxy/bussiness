@@ -12,11 +12,17 @@ import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.v85.network.Network;
 import org.openqa.selenium.devtools.v85.network.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -26,31 +32,33 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class DpopService  {
+public class DpopService {
     @Autowired
     MercariCrawler mercariCrawler;
     ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     ;
-    volatile boolean dpopUpdated= false;
+    volatile boolean dpopUpdated = false;
+    volatile boolean itemdpopUpdated = false;
     Condition condition = new ReentrantLock().newCondition();
+    @Value("${chromedriver.address}")
+    private String driverAddress;
 
     @PostConstruct
     public void init() {
-        scheduledExecutorService.scheduleWithFixedDelay(()-> {
+        scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 this.updateDpop();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }, 0,1, TimeUnit.DAYS);
+        }, 0, 1, TimeUnit.DAYS);
     }
-
 
 
     public void updateDpop() throws InterruptedException {
 
 
-        System.setProperty("webdriver.chrome.driver", "C://Users//admin//Desktop//chromedriver_win32//chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", driverAddress);
         ChromeDriver chromeDriver = new ChromeDriver();
 
         DevTools chromeDevTools = chromeDriver.getDevTools();
@@ -78,7 +86,11 @@ public class DpopService  {
             if (request.getUrl().contains("entities")) {
                 String dPoP = (String) request.getHeaders().get("DPoP");
                 if (StringUtils.isNotBlank(dPoP)) {
-                    mercariCrawler.setDpop(dPoP);
+                    try {
+                        mercariCrawler.setDpop(dPoP);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     log.info("更新Dpop");
                     dpopUpdated = true;
                 }
@@ -90,6 +102,59 @@ public class DpopService  {
             Thread.sleep(2000);
         }
         dpopUpdated = false;
+        chromeDriver.close();
+
+
+    }
+
+
+    public void updateItemDpop(String reqItemId) throws InterruptedException {
+
+
+        System.setProperty("webdriver.chrome.driver", driverAddress);
+        ChromeDriver chromeDriver = new ChromeDriver();
+
+        DevTools chromeDevTools = chromeDriver.getDevTools();
+        chromeDevTools.createSession();
+
+        //enable Network
+        chromeDevTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
+
+        //set blocked URL patterns
+        chromeDevTools.send(Network.setBlockedURLs(ImmutableList.of("*.css", "*.png")));
+//        RequestPattern requestPattern = new RequestPattern("*.css", ResourceType.Stylesheet, InterceptionStage.HeadersReceived);
+//        chromeDevTools.send(Network.setRequestInterception(ImmutableList.of(requestPattern)));
+
+        //add event listener to verify that css and png are blocked
+        chromeDevTools.addListener(Network.requestWillBeSent(), loadingFailed -> {
+
+//            chromeDevTools.send(
+//                    Network.continueInterceptedRequest(loadingFailed.getInterceptionId(),
+//                            Optional.empty(),
+//                            Optional.empty(),
+//                            Optional.empty(), Optional.empty(),
+//                            Optional.empty(),
+//                            Optional.empty(), Optional.empty()));
+            Request request = loadingFailed.getRequest();
+            if (request.getUrl().contains("get?id")) {
+                String dPoP = (String) request.getHeaders().get("DPoP");
+                if (StringUtils.isNotBlank(dPoP)) {
+                    mercariCrawler.setItemdpop(dPoP);
+                    log.info("更新ItemDpop");
+                    itemdpopUpdated = true;
+                }
+            }
+        });
+
+        if (StringUtils.isBlank(reqItemId)) {
+            reqItemId =
+                    "m18325606132";
+        }
+        chromeDriver.get("https://jp.mercari.com/item/" + reqItemId);
+        while (!itemdpopUpdated) {
+            Thread.sleep(2000);
+        }
+        itemdpopUpdated = false;
         chromeDriver.close();
     }
 }

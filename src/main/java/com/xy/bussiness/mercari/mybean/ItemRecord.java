@@ -22,6 +22,6 @@ public class ItemRecord {
     private Integer itemConditionId;
     private Date createDate;
     private Date updateDate;
-
+    private String soldStatus;
 
 }

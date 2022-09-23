@@ -1,6 +1,7 @@
 package com.xy.bussiness.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -67,26 +69,48 @@ public class MercariRestController {
         return conditionList;
     }
 
-    @GetMapping("/mercari/clean/item")
-    public void cleanItems(){
-        List<ItemRecord> list = itemRecordService.list();
-        List<ItemRecord> removeList = new ArrayList<>();
-        for (ItemRecord item : list){
+    @GetMapping("/mercari/update/item")
+    /**
+     * 更新销售状态
+     */
+    public void updateItemSoldStatus() throws InterruptedException {
+        dpopService.updateItemDpop(null);
+        LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ItemRecord::getSoldStatus,null).or().eq(ItemRecord::getSoldStatus,"on_sale");
+
+        List<ItemRecord> list = itemRecordService.list(queryWrapper);
+        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
+        for (ItemRecord item : collect.values()){
             try {
                 ItemData itemDetail = mercariCrawler.getItemDetail(item.getMercariItemId());
                 String status = itemDetail.getStatus();
-                if ("cancel".equals(status) || "trading".equals(status) || "sold_out".equals(status)) {
-                    removeList.add(item);
-                }
+                LambdaUpdateWrapper<ItemRecord> updateWrapper = Wrappers.lambdaUpdate();
+                updateWrapper.set(ItemRecord::getSoldStatus,status);
+                updateWrapper.eq(ItemRecord::getMercariItemId,item.getMercariItemId());
+                itemRecordService.update(updateWrapper);
+
             }catch (Exception e){
 
             }
         }
-        if (CollectionUtils.isNotEmpty(removeList)){
-            log.info("清除mercari已售出记录{}条",removeList.size());
-            itemRecordService.removeBatchByIds(removeList.stream().map(ItemRecord::getMercariItemId).collect(Collectors.toList()));
-        }
+
     }
+
+
+    /**
+     * 清理已售出产品
+     * @param conditionId
+     */
+    @GetMapping("/mercari/clean/item")
+    public void cleanItems(String conditionId){
+        LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.ne(ItemRecord::getSoldStatus,null).ne(ItemRecord::getSoldStatus,"on_sale");
+        queryWrapper.eq(ItemRecord::isInterest,false);
+        queryWrapper.eq(StringUtils.isNotBlank(conditionId),ItemRecord::getSearchConditionId,conditionId);
+        itemRecordService.remove(queryWrapper);
+
+    }
+
 
     @GetMapping("/mercari/item/detail")
     public ItemData getItemDetail(String itemId){
@@ -105,6 +129,11 @@ public class MercariRestController {
        return mercariCrawler.getDpop();
     }
 
+
+    @PostMapping("/mercari/itemdpop")
+    public void updateItemDpop(String itemId) throws InterruptedException {
+        dpopService.updateItemDpop(itemId);
+    }
 
     @GetMapping("/mercari/updateCondition")
     public void updateCondition(String id,String condition,Boolean enable){

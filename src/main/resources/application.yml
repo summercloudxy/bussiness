@@ -36,3 +36,6 @@ mybatis:
 server:
   port: 8111
 
+chromedriver:
+  address: C://Users//admin//Desktop//chromedriver_win32//chromedriver.exe
+

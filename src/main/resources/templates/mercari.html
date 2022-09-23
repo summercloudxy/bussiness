@@ -22,7 +22,7 @@
                         $("#conditionTableBody").append(
                             "<tr><td>" + searchconditionlist[i].id +
                             "</td><td>" + searchconditionlist[i].brand +
-                            "</td><td><a href='https://jp.mercari.com/search?keyword=" + searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale' target='_blank'>" + searchconditionlist[i].keyword + "</a>" +
+                            "</td><td><a href='https://jp.mercari.com/search?keyword=" + searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1' target='_blank'>" + searchconditionlist[i].keyword + "</a>" +
 
                             "</td><td>" + searchconditionlist[i].description +
                             "</td><td>" + searchconditionlist[i].enable +
@@ -168,7 +168,7 @@
             <td th:text="${searchCondition.id}"></td>
             <td>[[${searchCondition.brand}]]</td>
             <td>
-                <a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale'"
+                <a th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1'"
                    th:text="${searchCondition.keyword}" target='_blank'></a></td>
             <td th:text="${searchCondition.description}"></td>
             <td th:text="${searchCondition.enable}==1?'是':'否'"></td>

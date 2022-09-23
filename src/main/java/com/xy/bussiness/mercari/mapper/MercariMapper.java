@@ -14,6 +14,9 @@ public interface MercariMapper {
     @Select("select * from mercari_item_record where search_condition_id = #{searchConditionId}")
     List<ItemRecord> getItemRecordsByCondition(@Param("searchConditionId") Integer searchConditionId);
 
+    @Select("select * from mercari_item_record where mercari_item_id = #{mercariItemId} limit 0,1")
+    ItemRecord getItemRecordByMercariId(@Param("mercariItemId")String mercariItemId);
+
 
     @Select("delete from mercari_item_record where search_condition_id = #{searchConditionId}")
     void delItemRecords(@Param("searchConditionId") Integer searchConditionId);

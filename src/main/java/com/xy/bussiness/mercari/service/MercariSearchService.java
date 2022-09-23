@@ -1,6 +1,7 @@
 package com.xy.bussiness.mercari.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.notification.NotificationService;
 import com.xy.bussiness.notification.WindowsNotification;
@@ -51,6 +52,8 @@ public class MercariSearchService {
     WindowsNotification windowsNotification;
     @Autowired
     NotificationService notificationService;
+    @Autowired
+    MercariItemRecordService mercariItemRecordService;
     @Value("${mercari.enable:true}")
     private Boolean mercariEnable;
 
@@ -107,6 +110,7 @@ public class MercariSearchService {
         List<ItemRecord> newItems = new ArrayList<>();
         List<ItemRecord> currentAllItems = new ArrayList<>();
         List<ItemRecord> priceItems = new ArrayList<>();
+        List<ItemRecord> noticeNewItems = new ArrayList<>();
         for (ItemsItem item : itemList) {
             String mercariItemId = item.getId();
             ItemRecord oldItem = oldItems.get(mercariItemId);
@@ -124,6 +128,10 @@ public class MercariSearchService {
                 itemRecord.setOriginPrice(Integer.valueOf(item.getPrice()));
                 itemRecord.setInterest(false);
                 newItems.add(itemRecord);
+                ItemRecord itemRecordByMercariId = mercariMapper.getItemRecordByMercariId(mercariItemId);
+                if (itemRecordByMercariId == null){
+                    noticeNewItems.add(itemRecord);
+                }
             } else {
                 itemRecord.setInterest(oldItem.isInterest());
                 itemRecord.setId(oldItem.getId());
@@ -135,19 +143,24 @@ public class MercariSearchService {
             currentAllItems.add(itemRecord);
         }
         if (!CollectionUtils.isEmpty(newItems)) {
-            log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
-            notificationService.sendNew(searchCondition, newItems);
             itemRecordService.saveBatch(newItems);
-//            mercariMapper.insertItemRecords(newItems);
+        }
+        if (!CollectionUtils.isEmpty(noticeNewItems)){
+            log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
+            notificationService.sendNew(searchCondition, noticeNewItems);
         }
         if (!CollectionUtils.isEmpty(priceItems)) {
             log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());
             notificationService.sendPrice(searchCondition, priceItems);
-            itemRecordService.updateBatchById(priceItems);
-//            mercariMapper.updateItemRecords(priceItems);
+            for (ItemRecord priceItem: priceItems) {
+                LambdaUpdateWrapper<ItemRecord> updateWrapper = Wrappers.lambdaUpdate();
+                updateWrapper.eq(ItemRecord::getMercariItemId,priceItem.getMercariItemId());
+                updateWrapper.set(ItemRecord::getCurrentPrice,priceItem.getCurrentPrice());
+                updateWrapper.set(ItemRecord::getUpdateDate,priceItem.getUpdateDate());
+                itemRecordService.update(updateWrapper);
+            }
         }
     }
-
 
 
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Controller
@@ -84,7 +85,9 @@ public class MercariPageController {
         if (conditionId != null) {
             queryWrapper.eq(ItemRecord::getSearchConditionId, conditionId);
         }
-        return itemRecordService.list(queryWrapper);
+        List<ItemRecord> list = itemRecordService.list(queryWrapper);
+        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
+        return new ArrayList<>(collect.values());
     }
 
     public List<MercariSearchCondition> getMercariKeyWord(String keyword,String brand){

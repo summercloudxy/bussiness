@@ -17,6 +17,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -90,14 +94,46 @@ public class MercariCrawler  {
     }
 
 
-    public void setDpop(String dpop){
+    public void setDpop(String dpop) throws IOException {
         this.dpop = dpop;
+        try {
+            Properties properties = new Properties();
+            //todo 修改绝对路径
+            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+            properties.load(inStream);
+            properties.setProperty("mercari.dpop", dpop);
+            properties.store(outputStream, "summer");
+            outputStream.close();
+        }catch (Exception e){
+
+        }
     }
 
     public String getDpop(){
         return dpop;
     }
 
+
+    public String getItemdpop() {
+        return itemdpop;
+    }
+
+    public void setItemdpop(String itemdpop) {
+        this.itemdpop = itemdpop;
+        try {
+            Properties properties = new Properties();
+            //todo 修改绝对路径
+            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+            properties.load(inStream);
+            properties.setProperty("mercari.item.dpop", itemdpop);
+            properties.store(outputStream, "summer");
+            outputStream.close();
+        }catch (Exception e){
+
+        }
+    }
 
     public ItemData getItemDetail(String itemId){
 
