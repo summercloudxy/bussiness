@@ -1,7 +1,9 @@
 package com.xy.bussiness.rakuten;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.rakuten.mybatisservice.RakutenItemRecordService;
 import com.xy.bussiness.rakuten.mybean.RakutenItemRecord;
@@ -56,6 +58,7 @@ public class RakutenPipeline implements Pipeline {
             Map<String, RakutenItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(RakutenItemRecord::getItemId, Function.identity(),(a, b)-> a));
             List<RakutenItemRecord> newItemList = new ArrayList<>();
             List<RakutenItemRecord> priceItemList = new ArrayList<>();
+            List<RakutenItemRecord> noticeNewItems = new ArrayList<>();
             for (RakutenItemRecord item : items) {
                 RakutenItemRecord oldItem = oldItemMap.get(item.getItemId());
                 item.setSearchConditionId(Integer.valueOf(searchConditionId));
@@ -63,6 +66,12 @@ public class RakutenPipeline implements Pipeline {
                 if (oldItem == null) {
                     item.setOriginPrice(item.getCurrentPrice());
                     newItemList.add(item);
+                    LambdaQueryWrapper<RakutenItemRecord> wrappers = Wrappers.lambdaQuery();
+                    wrappers.eq(RakutenItemRecord::getItemId,item.getItemId());
+                    RakutenItemRecord itemRecordByItemId = rakutenItemRecordService.getOne(wrappers);
+                    if (itemRecordByItemId == null) {
+                        noticeNewItems.add(item);
+                    }
                 } else {
                     if (oldItem.isInterest() && oldItem.getOriginPrice() > item.getCurrentPrice()) {
                         item.setOriginPrice(oldItem.getOriginPrice());
@@ -75,11 +84,19 @@ public class RakutenPipeline implements Pipeline {
             if (!CollectionUtils.isEmpty(newItemList)){
                 log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItemList.size());
                 rakutenItemRecordService.saveBatch(newItemList);
-                sendNewMail(searchCondition,newItemList);
+            }
+            if (!CollectionUtils.isEmpty(noticeNewItems)){
+                sendNewMail(searchCondition,noticeNewItems);
             }
             if (!CollectionUtils.isEmpty(priceItemList)){
                 log.info("搜索条件-[{}]降价了,推送通知", searchCondition.getDescription(), priceItemList.size());
-                rakutenItemRecordService.updateBatchById(priceItemList);
+                for (RakutenItemRecord priceItem : priceItemList) {
+                    LambdaUpdateWrapper<RakutenItemRecord> updateWrapper = Wrappers.lambdaUpdate();
+                    updateWrapper.eq(RakutenItemRecord::getItemId, priceItem.getItemId());
+                    updateWrapper.set(RakutenItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
+                    updateWrapper.set(RakutenItemRecord::getUpdateDate, priceItem.getUpdateDate());
+                    rakutenItemRecordService.update(updateWrapper);
+                }
                 sendPriceMail(searchCondition,priceItemList);
             }
             Integer currentPageNum = Integer.valueOf(split[1]);

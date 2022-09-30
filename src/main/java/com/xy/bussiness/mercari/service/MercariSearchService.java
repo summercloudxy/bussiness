@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -90,8 +91,16 @@ public class MercariSearchService {
                     Thread.sleep(1 * 1000L - duration);
                 }
                 log.info("开始查询关键字[{}]的产品", poll.getDescription());
-                List<ItemsItem> crawl = mercariCrawler.crawl(poll);
-                log.info("关键字[{}]搜索到[{}]条产品", poll.getDescription(), crawl.size());
+                List<ItemsItem> crawl = null;
+                try {
+                    crawl = mercariCrawler.crawl(poll);
+                } catch (ResourceAccessException e) {
+                    // 间隔较长的任务，失败了重试
+                    if (poll.getDuration() > 10) {
+                        queue.offer(poll);
+                    }
+                }
+                log.info("关键字[{}]搜索到[{}]条产品", poll.getDescription(), crawl == null ? -1 : crawl.size());
                 if (!CollectionUtils.isEmpty(crawl)) {
                     check(poll, crawl);
                 }
@@ -129,7 +138,7 @@ public class MercariSearchService {
                 itemRecord.setInterest(false);
                 newItems.add(itemRecord);
                 ItemRecord itemRecordByMercariId = mercariMapper.getItemRecordByMercariId(mercariItemId);
-                if (itemRecordByMercariId == null){
+                if (itemRecordByMercariId == null) {
                     noticeNewItems.add(itemRecord);
                 }
             } else {
@@ -145,18 +154,18 @@ public class MercariSearchService {
         if (!CollectionUtils.isEmpty(newItems)) {
             itemRecordService.saveBatch(newItems);
         }
-        if (!CollectionUtils.isEmpty(noticeNewItems)){
+        if (!CollectionUtils.isEmpty(noticeNewItems)) {
             log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
             notificationService.sendNew(searchCondition, noticeNewItems);
         }
         if (!CollectionUtils.isEmpty(priceItems)) {
             log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());
             notificationService.sendPrice(searchCondition, priceItems);
-            for (ItemRecord priceItem: priceItems) {
+            for (ItemRecord priceItem : priceItems) {
                 LambdaUpdateWrapper<ItemRecord> updateWrapper = Wrappers.lambdaUpdate();
-                updateWrapper.eq(ItemRecord::getMercariItemId,priceItem.getMercariItemId());
-                updateWrapper.set(ItemRecord::getCurrentPrice,priceItem.getCurrentPrice());
-                updateWrapper.set(ItemRecord::getUpdateDate,priceItem.getUpdateDate());
+                updateWrapper.eq(ItemRecord::getMercariItemId, priceItem.getMercariItemId());
+                updateWrapper.set(ItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
+                updateWrapper.set(ItemRecord::getUpdateDate, priceItem.getUpdateDate());
                 itemRecordService.update(updateWrapper);
             }
         }
