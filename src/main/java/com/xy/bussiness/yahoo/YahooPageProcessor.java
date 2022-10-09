@@ -13,6 +13,7 @@ import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -61,6 +62,7 @@ public class YahooPageProcessor implements PageProcessor {
             yahooItemRecord.setBuyNowPrice(Integer.valueOf(buyNowPrice));
             yahooItemRecord.setAuctionPrice(Integer.valueOf(auctionPrice));
             yahooItemRecord.setOriginPrice(Integer.valueOf(auctionStartPrice));
+            yahooItemRecord.setEndTime(new Date(Long.parseLong(auctionEndTime)*1000));
             yahooItemRecords.add(yahooItemRecord);
         }
         page.putField("items", yahooItemRecords);

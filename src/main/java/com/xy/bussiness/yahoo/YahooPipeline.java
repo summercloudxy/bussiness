@@ -72,13 +72,15 @@ public class YahooPipeline implements Pipeline {
 
             if (!CollectionUtils.isEmpty(newItemList)){
                 log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItemList.size());
-                yahooItemRecordService.saveBatch(newItemList);
                 sendNewMail(searchCondition,newItemList);
+                yahooItemRecordService.saveBatch(newItemList);
+
             }
             if (!CollectionUtils.isEmpty(priceItemList)){
                 log.info("搜索条件-[{}]降价了,推送通知", searchCondition.getDescription(), priceItemList.size());
-                yahooItemRecordService.updateBatchById(priceItemList);
                 sendPriceMail(searchCondition,priceItemList);
+
+                yahooItemRecordService.updateBatchById(priceItemList);
             }
             yahooService.addTask(split[0], String.valueOf(Integer.valueOf(split[1]) + 1));
         }catch (Exception e){

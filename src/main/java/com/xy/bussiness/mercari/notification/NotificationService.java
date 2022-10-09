@@ -20,16 +20,11 @@ public class NotificationService {
     WindowsNotification windowsNotification;
     ExecutorService executorService = Executors.newFixedThreadPool(5);
 
-    public void sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems)  {
+    public void sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
         executorService.execute(()->windowsNotification.display("煤炉:" + searchCondition.getBrand() + description + "上新啦",getNewWindowsContent(newItems)));
-        executorService.execute(()-> {
-            try {
-                mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems));
+
     }
 
     public void sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {

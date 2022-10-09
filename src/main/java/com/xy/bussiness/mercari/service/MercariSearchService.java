@@ -151,12 +151,13 @@ public class MercariSearchService {
             }
             currentAllItems.add(itemRecord);
         }
-        if (!CollectionUtils.isEmpty(newItems)) {
-            itemRecordService.saveBatch(newItems);
-        }
+
         if (!CollectionUtils.isEmpty(noticeNewItems)) {
             log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
             notificationService.sendNew(searchCondition, noticeNewItems);
+        }
+        if (!CollectionUtils.isEmpty(newItems)) {
+            itemRecordService.saveBatch(newItems);
         }
         if (!CollectionUtils.isEmpty(priceItems)) {
             log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());

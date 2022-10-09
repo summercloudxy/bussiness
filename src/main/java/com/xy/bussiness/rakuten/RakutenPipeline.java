@@ -68,12 +68,12 @@ public class RakutenPipeline implements Pipeline {
                     newItemList.add(item);
                     LambdaQueryWrapper<RakutenItemRecord> wrappers = Wrappers.lambdaQuery();
                     wrappers.eq(RakutenItemRecord::getItemId,item.getItemId());
-                    RakutenItemRecord itemRecordByItemId = rakutenItemRecordService.getOne(wrappers);
-                    if (itemRecordByItemId == null) {
+                    List<RakutenItemRecord> itemRecordByItemId = rakutenItemRecordService.list(wrappers);
+                    if (CollectionUtils.isEmpty(itemRecordByItemId)) {
                         noticeNewItems.add(item);
                     }
                 } else {
-                    if (oldItem.isInterest() && oldItem.getOriginPrice() > item.getCurrentPrice()) {
+                    if (oldItem.isInterest() && oldItem.getCurrentPrice() > item.getCurrentPrice()) {
                         item.setOriginPrice(oldItem.getOriginPrice());
                         item.setId(oldItem.getId());
                         priceItemList.add(item);
@@ -81,15 +81,17 @@ public class RakutenPipeline implements Pipeline {
                 }
             }
 
+
+            if (!CollectionUtils.isEmpty(noticeNewItems)){
+                sendNewMail(searchCondition,noticeNewItems);
+            }
             if (!CollectionUtils.isEmpty(newItemList)){
                 log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItemList.size());
                 rakutenItemRecordService.saveBatch(newItemList);
             }
-            if (!CollectionUtils.isEmpty(noticeNewItems)){
-                sendNewMail(searchCondition,noticeNewItems);
-            }
             if (!CollectionUtils.isEmpty(priceItemList)){
                 log.info("搜索条件-[{}]降价了,推送通知", searchCondition.getDescription(), priceItemList.size());
+                sendPriceMail(searchCondition,priceItemList);
                 for (RakutenItemRecord priceItem : priceItemList) {
                     LambdaUpdateWrapper<RakutenItemRecord> updateWrapper = Wrappers.lambdaUpdate();
                     updateWrapper.eq(RakutenItemRecord::getItemId, priceItem.getItemId());
@@ -97,7 +99,6 @@ public class RakutenPipeline implements Pipeline {
                     updateWrapper.set(RakutenItemRecord::getUpdateDate, priceItem.getUpdateDate());
                     rakutenItemRecordService.update(updateWrapper);
                 }
-                sendPriceMail(searchCondition,priceItemList);
             }
             Integer currentPageNum = Integer.valueOf(split[1]);
 

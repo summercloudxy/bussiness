@@ -100,6 +100,9 @@ public class RakutenService {
                     urlBuilder.append("&category_id=");
                     urlBuilder.append(searchCondition.getSearchCategory());
                 }
+                if ("new".equalsIgnoreCase(searchCondition.getStatus())){
+                    urlBuilder.append("&status=new");
+                }
                 if (poll.getPageNum() >1) {
                     urlBuilder.append("&page=");
                     urlBuilder.append(poll.getPageNum());
