@@ -19,7 +19,7 @@ public class MyMailSender {
     @Autowired
     JavaMailSender javaMailSender;
 
-    public boolean send(String topic, String content) throws Exception {
+    public synchronized boolean send(String topic, String content) throws Exception {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setSubject(topic);
@@ -28,6 +28,7 @@ public class MyMailSender {
         helper.setSentDate(new Date());
         helper.setText(content, true);
         javaMailSender.send(mimeMessage);
+        Thread.sleep(2000);
         return true;
     }
 

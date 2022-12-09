@@ -17,6 +17,7 @@ import us.codecraft.webmagic.pipeline.Pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ public class YahooPipeline implements Pipeline {
     private YahooService yahooService;
     @Autowired
     private MyMailSender mailSender;
+
+    private Map<String,List<YahooItemRecord>> recordMap = new ConcurrentHashMap<>();
 
     @Override
     public void process(ResultItems resultItems, Task task) {

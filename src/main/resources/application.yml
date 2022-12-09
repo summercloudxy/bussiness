@@ -5,7 +5,7 @@ spring:
     # 发送者邮箱
     username: 469654418@qq.com
     # 配置密码，注意不是真正的密码，而是刚刚申请到的授权码
-    password: kkujuxtdclypbhad
+    password: pkxqjaujkyjubjhc
     # 端口号465或587
     port: 587
     # 默认的邮件编码为UTF-8
@@ -17,6 +17,28 @@ spring:
           socketFactoryClass: javax.net.ssl.SSLSocketFactory
         #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
         debug: false
+
+#  mail:
+#    # 配置 SMTP 服务器地址
+#    host: smtp.gmail.com
+#    # 发送者邮箱
+#    username: fengchunzhimei@gmail.com
+#    # 配置密码，注意不是真正的密码，而是刚刚申请到的授权码
+#    password: poboitxbbohlmfxu
+#    # 端口号465或587
+#    port: 587
+#    # 默认的邮件编码为UTF-8
+#    default-encoding: UTF-8
+#    # 配置SSL 加密工厂
+#    properties:
+#      mail:
+#        smtp:
+#          starttls:
+#            enable: true
+#          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+#        #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
+#        debug: false
+
   datasource:
     url: jdbc:mysql://localhost:3306/mercari?serverTimezone=Asia/Shanghai&characterEncoding=utf-8&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
@@ -34,7 +56,7 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 server:
-  port: 8111
+  port: 8112
 
 chromedriver:
   address: C://Users//admin//Desktop//chromedriver_win32//chromedriver.exe

@@ -88,7 +88,6 @@ public class MercariRestController {
                 updateWrapper.set(ItemRecord::getSoldStatus,status);
                 updateWrapper.eq(ItemRecord::getMercariItemId,item.getMercariItemId());
                 itemRecordService.update(updateWrapper);
-
             }catch (Exception e){
 
             }

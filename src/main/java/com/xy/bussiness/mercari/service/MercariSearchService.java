@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.ResourceAccessException;
+import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ public class MercariSearchService {
 
     @PostConstruct
     public void init() {
+
         if (mercariEnable) {
             LambdaQueryWrapper<MercariSearchCondition> queryWrapper = Wrappers.lambdaQuery();
             LambdaQueryWrapper<MercariSearchCondition> eq = queryWrapper.eq(MercariSearchCondition::isEnable, true);

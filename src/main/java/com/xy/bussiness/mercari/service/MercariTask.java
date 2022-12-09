@@ -22,7 +22,13 @@ public class MercariTask implements Runnable {
         try {
             LocalTime localTime = LocalTime.now();
             int hour = localTime.getHour();
-            if (hour < 7){
+            int minute = localTime.getMinute();
+            if (hour < 7 || hour == 11){
+                Integer duration = searchCondition.getDuration();
+                // 夜间每小时只执行一次，加两分钟为了防止队列堆积延迟
+                if (minute < duration + 2){
+                    queue.put(searchCondition);
+                }
                 return;
             }
             queue.put(searchCondition);
