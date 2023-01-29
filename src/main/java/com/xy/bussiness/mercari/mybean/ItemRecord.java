@@ -23,5 +23,6 @@ public class ItemRecord {
     private Date createDate;
     private Date updateDate;
     private String soldStatus;
+    private String sellerId;
 
 }

@@ -3,6 +3,7 @@ package com.xy.bussiness.mercari.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.xy.bussiness.mercari.mybean.MercariSellerSearchCondition;
 import com.xy.bussiness.mercari.notification.NotificationService;
 import com.xy.bussiness.notification.WindowsNotification;
 import com.xy.bussiness.notification.mail.MyMailSender;
@@ -21,8 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.ResourceAccessException;
-import redis.clients.jedis.BinaryJedis;
-import redis.clients.jedis.Jedis;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -90,13 +89,13 @@ public class MercariSearchService {
                 MercariSearchCondition poll = queue.take();
                 // 两次执行间隔要大于10s
                 long duration = new Date().getTime() - lastExecuteTime.getTime();
-                if (duration < 1 * 1000L) {
-                    Thread.sleep(1 * 1000L - duration);
+                if (duration <500L) {
+                    Thread.sleep(500L - duration);
                 }
                 log.info("开始查询关键字[{}]的产品", poll.getDescription());
                 List<ItemsItem> crawl = null;
                 try {
-                    crawl = mercariCrawler.crawl(poll);
+                    crawl = mercariCrawler.getMercariItemsByCondition(poll);
                 } catch (ResourceAccessException e) {
                     // 间隔较长的任务，失败了重试
                     if (poll.getDuration() > 10) {
@@ -132,6 +131,7 @@ public class MercariSearchService {
             itemRecord.setCurrentPrice(Integer.valueOf(item.getPrice()));
             itemRecord.setCreateDate(new Date(Long.parseLong(item.getCreated()) * 1000));
             itemRecord.setUpdateDate(new Date(Long.parseLong(item.getUpdated()) * 1000));
+            itemRecord.setSellerId(item.getSellerId());
             if (StringUtils.isNotBlank(item.getItemConditionId())) {
                 itemRecord.setItemConditionId(Integer.valueOf(item.getItemConditionId()));
             }

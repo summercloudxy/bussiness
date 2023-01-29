@@ -49,6 +49,19 @@ public class MyController {
         }
     }
 
+    @GetMapping("mercari/seller/setInterest")
+    public String sellerinterest(@Param("itemId") String itemId, @Param("interest") Integer interest) {
+        mercariMapper.setSellerInterest(itemId, interest);
+
+        if (interest == 1) {
+            log.info("关注产品{}", itemId);
+            return "关注成功";
+        } else {
+            log.info("取消关注产品{}", itemId);
+            return "取关成功";
+        }
+    }
+
     @GetMapping("yahoo/setInterest")
     public String yahoointerest(@Param("itemId") String itemId, @Param("interest") Integer interest) {
         LambdaUpdateWrapper<YahooItemRecord> lambdaQueryWrapper = Wrappers.lambdaUpdate(YahooItemRecord.class);

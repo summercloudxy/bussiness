@@ -5,12 +5,60 @@
     <title>Title</title>
     <script type="text/javascript" src="/layui/layui.js" charset="utf-8"></script>
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
+
+
+    <script type="text/javascript">
+        function clicksale(e) {
+
+            var brand = e.getAttribute("brand");
+            var conditionId = e.getAttribute("conditionId");
+            $.ajax({
+                url: '/mercari/item/interest?brand=' + brand + '&conditionId=' + conditionId + '&saleStatus=' + e.checked,
+                type: 'get',
+                dataType: 'json',
+                async: false,
+                // data : {'userName':userName},
+                success: function (itemList) {
+
+
+                    $("#itemTableBody").html('')
+                    for (var i in itemList) {
+                        $("#itemTableBody").append(
+                            "<tr><td>" + i +
+                            "</td><td>" + itemList[i].mercariItemId +
+                            "</td><td><a href='https://jp.mercari.com/item/" + itemList[i].mercariItemId + "' target='_blank'>" + itemList[i].mercariItemTitle + "</a>" +
+
+                            "</td><td><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/" + itemList[i].mercariItemId+ "_1.jpg'>" +
+                            "</td><td>" + itemList[i].originPrice +
+                            "</td><td>" + itemList[i].currentPrice +
+                            "</td><td><a className='btn btn-sm btn-primary' href='@{http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=" +  itemList[i].mercariItemId + "target='_blank'>手机</a>" +
+                            "<a className='btn btn-sm btn-primary' href='@{http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=" +  itemList[i].mercariItemId + "target='_blank'>电脑</a>" +
+
+                            "</td><td><a className='btn btn-sm btn-primary' href='@{/mercari/setInterest?interest=0&itemId="+itemList[i].mercariItemId +
+                            " target='_blank'>不再关注</a>"+
+                            "</td><td>"+itemList[i].soldStatus +
+                            "</td>"
+
+                        )
+                    }
+
+                }
+            });
+
+        }
+
+    </script>
 </head>
-<body>
+<body style="zoom: 2">
 <!--th:text 为 Thymeleaf 属性，用于在展示文本-->
 <h1 th:text="煤炉助手">欢迎您访问静态页面 HTML</h1>
 
 <!--<script type="text/javascript" src="/static/layui/layui.js" charset="utf-8"></script>-->
+
+<div id="salechoose">
+    <input id="salebox" type="checkbox" name="正在出售" th:attr="brand=${brand},conditionId=${conditionId}" onclick="clicksale(this)">
+    正在出售
+</div>
 
 <div class="table-responsive">
     <table class="itemTable" id="itemTable" border='1'>

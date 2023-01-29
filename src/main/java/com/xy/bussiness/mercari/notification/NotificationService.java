@@ -3,6 +3,8 @@ package com.xy.bussiness.mercari.notification;
 import com.xy.bussiness.mercari.constants.ConditionEnum;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
+import com.xy.bussiness.mercari.mybean.MercariSellerSearchCondition;
+import com.xy.bussiness.mercari.mybean.SellerItemRecord;
 import com.xy.bussiness.notification.WindowsNotification;
 import com.xy.bussiness.notification.mail.MyMailSender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ public class NotificationService {
         mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems));
 
     }
+
+
 
     public void sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
         mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceMailContent(priceItems));
@@ -97,7 +101,8 @@ public class NotificationService {
     }
 
 
-    public String getPriceMailContent(List<ItemRecord> recordList) {
+
+ public String getPriceMailContent(List<ItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (ItemRecord record : recordList) {
@@ -150,6 +155,8 @@ public class NotificationService {
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
+
+
 
 
 }

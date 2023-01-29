@@ -39,6 +39,7 @@ public class DpopService {
     ;
     volatile boolean dpopUpdated = false;
     volatile boolean itemdpopUpdated = false;
+    volatile boolean sellerdpopUpdated = false;
     Condition condition = new ReentrantLock().newCondition();
     @Value("${chromedriver.address}")
     private String driverAddress;
@@ -48,6 +49,7 @@ public class DpopService {
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 this.updateDpop();
+                this.updateSellerDpop();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -107,6 +109,57 @@ public class DpopService {
 
     }
 
+
+    public void updateSellerDpop() throws InterruptedException {
+
+
+        System.setProperty("webdriver.chrome.driver", driverAddress);
+        ChromeDriver chromeDriver = new ChromeDriver();
+
+        DevTools chromeDevTools = chromeDriver.getDevTools();
+        chromeDevTools.createSession();
+
+        //enable Network
+        chromeDevTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
+
+        //set blocked URL patterns
+        chromeDevTools.send(Network.setBlockedURLs(ImmutableList.of("*.css", "*.png")));
+//        RequestPattern requestPattern = new RequestPattern("*.css", ResourceType.Stylesheet, InterceptionStage.HeadersReceived);
+//        chromeDevTools.send(Network.setRequestInterception(ImmutableList.of(requestPattern)));
+
+        //add event listener to verify that css and png are blocked
+        chromeDevTools.addListener(Network.requestWillBeSent(), loadingFailed -> {
+
+//            chromeDevTools.send(
+//                    Network.continueInterceptedRequest(loadingFailed.getInterceptionId(),
+//                            Optional.empty(),
+//                            Optional.empty(),
+//                            Optional.empty(), Optional.empty(),
+//                            Optional.empty(),
+//                            Optional.empty(), Optional.empty()));
+            Request request = loadingFailed.getRequest();
+            if (request.getUrl().contains("get_items")) {
+                String dPoP = (String) request.getHeaders().get("DPoP");
+                if (StringUtils.isNotBlank(dPoP)) {
+                    try {
+                        mercariCrawler.setSellerDpop(dPoP);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    log.info("更新sellerDpop");
+                    sellerdpopUpdated = true;
+                }
+            }
+        });
+
+        chromeDriver.get("https://jp.mercari.com/user/profile/199329091");
+        while (!sellerdpopUpdated) {
+            Thread.sleep(2000);
+        }
+        sellerdpopUpdated = false;
+        chromeDriver.close();
+
+    }
 
     public void updateItemDpop(String reqItemId) throws InterruptedException {
 

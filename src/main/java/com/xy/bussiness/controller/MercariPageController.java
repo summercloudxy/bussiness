@@ -12,11 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Controller
@@ -70,25 +67,26 @@ public class MercariPageController {
 
     @GetMapping("/interest/item/{conditionId}")
     public String getInterestItemPage(Model model,@PathVariable Integer conditionId){
-        if (conditionId <0){
-            conditionId = null;
-        }
-        List<ItemRecord> interestItem = getInterestItem(conditionId);
+        List<ItemRecord> interestItem = mercariRestController.getConditionInterestItem(conditionId);
+        model.addAttribute("brand","empty");
+        model.addAttribute("conditionId",conditionId);
         model.addAttribute("itemList",interestItem);
         return "/mercariitem";
     }
 
+    @GetMapping("/interest/item/brand/{brand}")
+    public String getBrandInterestItemPage(Model model,@PathVariable String brand){
 
-    public List<ItemRecord> getInterestItem(Integer conditionId){
-        LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ItemRecord::isInterest,true);
-        if (conditionId != null) {
-            queryWrapper.eq(ItemRecord::getSearchConditionId, conditionId);
-        }
-        List<ItemRecord> list = itemRecordService.list(queryWrapper);
-        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
-        return new ArrayList<>(collect.values());
+        List<ItemRecord> interestItem = mercariRestController.getBrandInterestItem(brand);
+        model.addAttribute("itemList",interestItem);
+        model.addAttribute("brand",brand);
+        model.addAttribute("conditionId","empty");
+        return "/mercariitem";
     }
+
+
+
+
 
     public List<MercariSearchCondition> getMercariKeyWord(String keyword,String brand){
         LambdaQueryWrapper<MercariSearchCondition> queryWrapper = Wrappers.lambdaQuery();
