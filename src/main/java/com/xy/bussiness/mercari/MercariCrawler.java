@@ -131,7 +131,7 @@ public class MercariCrawler  {
 
         HttpEntity<SearchItemListRequest> request = new HttpEntity<>(null, headers);
         ResponseEntity<SellerItemResponse> response = restTemplate.exchange(
-                "https://api.mercari.jp/items/get_items?seller_id="+ mercariSellerSearchCondition.getSellerId() + "&limit=30&status=on_sale,trading,sold_out",
+                "https://api.mercari.jp/items/get_items?seller_id="+ mercariSellerSearchCondition.getSellerId() + "&limit=30&status=on_sale",
                 HttpMethod.GET,
                 request,
                 SellerItemResponse.class,
