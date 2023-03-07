@@ -1,3 +1,11 @@
 https://medium.com/@ohanaadi/chrome-devtools-and-selenium-4-eadab5d755b7
 chromedriver 下载
+升级chrome版本时，修改driver版本、pom selenium版本
 https://registry.npmmirror.com/binary.html?path=chromedriver/
+
+<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-devtools-v110 -->
+<dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-devtools-v110</artifactId>
+    <version>4.8.1</version>
+</dependency>
