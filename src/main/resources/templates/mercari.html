@@ -40,6 +40,9 @@
                             "</td><td><a href='https://jp.mercari.com/search?keyword=" + searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1' target='_blank'>" + searchconditionlist[i].keyword + "</a>" +
 
                             "<button data-clipboard-text='" +searchconditionlist[i].keyword + "' class='btn'>点击复制</button>" +
+                            "</td><td><a href='https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=" + searchconditionlist[i].enKeyword + "&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1' target='_blank'>" + searchconditionlist[i].enKeyword + "</a>" +
+
+                            "<button data-clipboard-text='" +searchconditionlist[i].enKeyword + "' class='btn'>点击复制</button>" +
                             "</td><td>" + searchconditionlist[i].description +
                             "</td><td>" + searchconditionlist[i].enable +
                             "</td><td>" + searchconditionlist[i].duration +
@@ -186,6 +189,7 @@
             <th>#</th>
             <th>品牌</th>
             <th>关键字</th>
+            <th>英文关键字</th>
             <th>描述</th>
             <th>是否启用</th>
             <th>查询间隔</th>
@@ -205,6 +209,16 @@
                    th:text="${searchCondition.keyword}" target='_blank'></a>
 
                 <button th:attr="data-clipboard-text=${searchCondition.keyword}" class="btn">
+                    点击复制
+                </button>
+
+            </td>
+            <td>
+                <a th:id="'enKeyword' + ${searchCondition.id}"
+                   th:href="'https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=' + ${searchCondition.enKeyword}
+                   th:text="${searchCondition.enKeyword}" target='_blank'></a>
+
+                <button th:attr="data-clipboard-text=${searchCondition.enKeyword}" class="btn">
                     点击复制
                 </button>
 

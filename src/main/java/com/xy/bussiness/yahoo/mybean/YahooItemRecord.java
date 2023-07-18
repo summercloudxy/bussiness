@@ -21,6 +21,8 @@ public class YahooItemRecord {
     private Integer auctionPrice;
     private String imageUrl;
     private Boolean interest;
+    private Date createDate;
+    private Date updateDate;
 
 
 }

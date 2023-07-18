@@ -18,6 +18,7 @@ import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -65,6 +66,7 @@ public class RakutenPipeline implements Pipeline {
                 item.setInterest(false);
                 if (oldItem == null) {
                     item.setOriginPrice(item.getCurrentPrice());
+                    item.setCreateDate(new Date());
                     newItemList.add(item);
                     LambdaQueryWrapper<RakutenItemRecord> wrappers = Wrappers.lambdaQuery();
                     wrappers.eq(RakutenItemRecord::getItemId,item.getItemId());
@@ -76,6 +78,7 @@ public class RakutenPipeline implements Pipeline {
                     if (oldItem.isInterest() && oldItem.getCurrentPrice() > item.getCurrentPrice()) {
                         item.setOriginPrice(oldItem.getOriginPrice());
                         item.setId(oldItem.getId());
+                        item.setUpdateDate(new Date());
                         priceItemList.add(item);
                     }
                 }
@@ -150,8 +153,8 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Rakutener/goodsitem.html?url=");
-            stringBuilder.append(record.getItemUrl());
+            stringBuilder.append("<a href='http://friljp.jpshuntong.com/item/");
+            stringBuilder.append(record.getItemId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");
 
@@ -198,8 +201,8 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Rakutener/goodsitem.html?url=");
-            stringBuilder.append(record.getItemUrl());
+            stringBuilder.append("<a href='http://friljp.jpshuntong.com/item/");
+            stringBuilder.append(record.getItemId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");
 

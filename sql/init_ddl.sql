@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 29/01/2023 17:00:02
+ Date: 18/07/2023 15:19:49
 */
 
 SET NAMES utf8mb4;
@@ -37,7 +37,7 @@ CREATE TABLE `mercari_item_record`  (
                                         PRIMARY KEY (`id`) USING BTREE,
                                         INDEX `search_condition_id`(`search_condition_id`) USING BTREE,
                                         INDEX `mercari_item_id`(`mercari_item_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2115242484 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2115254866 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mercari_search_condition
@@ -46,6 +46,7 @@ DROP TABLE IF EXISTS `mercari_search_condition`;
 CREATE TABLE `mercari_search_condition`  (
                                              `id` int(0) NOT NULL AUTO_INCREMENT,
                                              `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索关键字',
+                                             `en_keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '英文品名',
                                              `description` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '描述',
                                              `search_category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索类别，以逗号分隔，见CategoryEnum',
                                              `price_max` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
@@ -57,7 +58,7 @@ CREATE TABLE `mercari_search_condition`  (
                                              `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '品牌',
                                              `item_condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '状态，以逗号分隔，见ConditionEnum',
                                              PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 337 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 375 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mercari_seller_item_record
@@ -76,7 +77,7 @@ CREATE TABLE `mercari_seller_item_record`  (
                                                `seller_id` int(0) NULL DEFAULT NULL,
                                                PRIMARY KEY (`id`) USING BTREE,
                                                INDEX `mercari_item_id`(`mercari_item_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2115242511 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2115243486 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mercari_seller_search_condition
@@ -87,13 +88,13 @@ CREATE TABLE `mercari_seller_search_condition`  (
                                                     `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '包含关键字',
                                                     `exclude_keyword` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '过滤关键字',
                                                     `seller_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '卖家id',
-                                                    `root_category` int(0) NULL DEFAULT NULL COMMENT '过滤类别',
+                                                    `root_category` int(0) NULL DEFAULT 6 COMMENT '过滤类别',
                                                     `enable` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
                                                     `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '过滤品牌，以逗号分隔',
                                                     `item_condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '状态，以逗号分隔，见ConditionEnum',
-                                                    `duration` int(0) NULL DEFAULT NULL,
+                                                    `duration` int(0) NULL DEFAULT 5,
                                                     PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 340 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 350 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rakuten_item_record
@@ -107,13 +108,13 @@ CREATE TABLE `rakuten_item_record`  (
                                         `interest` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
                                         `origin_price` int(0) NULL DEFAULT NULL,
                                         `current_price` int(0) NULL DEFAULT NULL,
-                                        `create_date` datetime(0) NULL DEFAULT NULL,
+                                        `create_date` datetime(0) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(0),
                                         `update_date` datetime(0) NULL DEFAULT NULL,
                                         `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                                         `item_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                                         PRIMARY KEY (`id`) USING BTREE,
                                         INDEX `search_condition_id`(`search_condition_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 36367 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 56058 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for rakuten_search_condition
@@ -135,7 +136,7 @@ CREATE TABLE `rakuten_search_condition`  (
                                              `max_page_num` int(0) NULL DEFAULT 1,
                                              `status` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                                              PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 239 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 249 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for yahoo_item_record
@@ -156,7 +157,7 @@ CREATE TABLE `yahoo_item_record`  (
                                       `end_time` datetime(0) NULL DEFAULT NULL,
                                       PRIMARY KEY (`id`) USING BTREE,
                                       INDEX `search_condition_id`(`search_condition_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2136248943 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2136291909 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for yahoo_search_condition
@@ -177,6 +178,6 @@ CREATE TABLE `yahoo_search_condition`  (
                                            `search_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                                            `page_size` int(0) NULL DEFAULT 20,
                                            PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 237 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 238 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

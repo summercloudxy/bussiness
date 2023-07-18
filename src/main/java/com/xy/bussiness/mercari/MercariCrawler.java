@@ -101,7 +101,6 @@ public class MercariCrawler  {
 
 
 
-
     public List<DataItem> getMercariItemsBySeller(MercariSellerSearchCondition mercariSellerSearchCondition) throws Exception {
         System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
         SearchItemListRequest searchItemListRequest = new SearchItemListRequest();

@@ -23,7 +23,7 @@ public class MercariTask implements Runnable {
             LocalTime localTime = LocalTime.now();
             int hour = localTime.getHour();
             int minute = localTime.getMinute();
-            if (hour < 7 || hour == 11){
+            if (hour < 7){
                 Integer duration = searchCondition.getDuration();
                 // 夜间每小时只执行一次，加两分钟为了防止队列堆积延迟
                 if (minute < duration + 2){
@@ -32,7 +32,9 @@ public class MercariTask implements Runnable {
                 return;
             }
             queue.put(searchCondition);
-        }catch (Exception e){}
+        }catch (Exception e){
+            System.out.println("条件" + searchCondition.getItemCondition() + "添加队列失败");
+        }
     }
 
 }

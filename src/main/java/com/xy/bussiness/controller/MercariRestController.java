@@ -120,9 +120,9 @@ public class MercariRestController {
     public void updateItemSoldStatus() throws InterruptedException {
         dpopService.updateItemDpop(null);
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ItemRecord::getSoldStatus,null).or().eq(ItemRecord::getSoldStatus,"on_sale");
+        queryWrapper.eq(ItemRecord::isInterest,true);
 
-        List<ItemRecord> list = itemRecordService.list();
+        List<ItemRecord> list = itemRecordService.list(queryWrapper);
         Map<String, ItemRecord> collect = list.stream().filter(t-> t.getSoldStatus() == null || "on_sale".equals(t.getSoldStatus())).collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
         for (ItemRecord item : collect.values()){
             try {
@@ -153,7 +153,6 @@ public class MercariRestController {
         queryWrapper.eq(ItemRecord::isInterest,false);
         queryWrapper.eq(StringUtils.isNotBlank(conditionId),ItemRecord::getSearchConditionId,conditionId);
         itemRecordService.remove(queryWrapper);
-
     }
 
 

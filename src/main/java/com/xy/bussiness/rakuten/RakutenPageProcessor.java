@@ -49,9 +49,9 @@ public class RakutenPageProcessor implements PageProcessor {
             String price = priceElement.attr("data-content");
 
 
-            Elements imageElements = product.getElementsByClass("link_search_image");
-            Element imageElement = imageElements.get(0).child(0);
-            String imageUrl = imageElement.attr("content");
+            Elements imageElements = product.getElementsByClass("item-box__image-wrapper");
+            Element imageElement = imageElements.get(0).child(0).child(1).child(0);
+            String imageUrl = imageElement.attr("src");
             List<String> split = Arrays.asList(itemUrl.split("/"));
 
 

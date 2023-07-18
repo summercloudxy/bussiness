@@ -13,6 +13,7 @@ import java.util.List;
 public class MercariSearchCondition {
     private Integer id;
     private String keyword;
+    private String enKeyword;
     private String description;
     private String searchCategory;
     private Integer priceMax;

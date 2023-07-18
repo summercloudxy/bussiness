@@ -15,6 +15,7 @@ import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,11 +64,13 @@ public class YahooPipeline implements Pipeline {
                 item.setSearchConditionId(Integer.valueOf(searchConditionId));
                 item.setInterest(false);
                 if (oldItem == null) {
+                    item.setCreateDate(new Date());
                     newItemList.add(item);
                 } else {
                     if (oldItem.getInterest() && oldItem.getAuctionPrice() > item.getAuctionPrice()) {
                         item.setOriginPrice(oldItem.getOriginPrice());
                         item.setId(oldItem.getId());
+                        item.setUpdateDate(new Date());
                         priceItemList.add(item);
                     }
                 }

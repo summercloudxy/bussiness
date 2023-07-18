@@ -30,7 +30,6 @@ public class NotificationService {
     }
 
 
-
     public void sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
         mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceMailContent(priceItems));
     }
@@ -75,13 +74,13 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
+            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>电脑端购买</a>");
             stringBuilder.append("</div>");
@@ -130,13 +129,13 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
+            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>电脑端购买</a>");
             stringBuilder.append("</div>");
