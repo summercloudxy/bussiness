@@ -214,8 +214,9 @@
 
             </td>
             <td>
-                <a th:id="'enKeyword' + ${searchCondition.id}"
-                   th:href="'https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=' + ${searchCondition.enKeyword}
+
+                <a th:id="'enkeyword' + ${searchCondition.id}"
+                   th:href="'https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=' + ${searchCondition.enKeyword}"
                    th:text="${searchCondition.enKeyword}" target='_blank'></a>
 
                 <button th:attr="data-clipboard-text=${searchCondition.enKeyword}" class="btn">
