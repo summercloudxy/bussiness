@@ -36,7 +36,7 @@ public class MercariPageController {
 
     public List<String> getMercariBrandList(){
         List<MercariSearchCondition> list = mercariSearchConditionService.list();
-        Map<String, Long> collect = list.stream().collect(Collectors.groupingBy(MercariSearchCondition::getBrand,Collectors.counting()));
+        Map<String, Long> collect = list.stream().filter(t-> t.getBrand() !=null).collect(Collectors.groupingBy(MercariSearchCondition::getBrand,Collectors.counting()));
         Map<String, Long> map = new TreeMap<>();
         map.putAll(collect);
         // 升序比较器

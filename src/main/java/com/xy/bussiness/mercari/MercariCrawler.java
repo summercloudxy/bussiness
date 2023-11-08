@@ -20,12 +20,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,6 +39,7 @@ public class MercariCrawler  {
     private String itemdpop;
     @Value("${mercari.seller.dpop}")
     private String sellerdpop;
+    private Lock lock = new ReentrantLock();
 
 
     public List<ItemsItem> getMercariItemsByCondition(MercariSearchCondition mercariSearchCondition) throws Exception {
@@ -145,12 +145,16 @@ public class MercariCrawler  {
         try {
             Properties properties = new Properties();
             //todo 修改绝对路径
-            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
-            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+            lock.lock();
+
+            InputStream inStream = new FileInputStream("D:\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
             properties.load(inStream);
             properties.setProperty("mercari.dpop", dpop);
+
+            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
             properties.store(outputStream, "summer");
             outputStream.close();
+            lock.unlock();
         }catch (Exception e){
 
         }
@@ -161,12 +165,16 @@ public class MercariCrawler  {
         try {
             Properties properties = new Properties();
             //todo 修改绝对路径
-            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
-            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+            lock.lock();
+            InputStream inStream = new FileInputStream("D:\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
+//            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
             properties.load(inStream);
             properties.setProperty("mercari.seller.dpop", dpop);
-            properties.store(outputStream, "summer");
+
+            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+            properties.store(outputStream, "xy");
             outputStream.close();
+            lock.unlock();
         }catch (Exception e){
 
         }
@@ -187,10 +195,14 @@ public class MercariCrawler  {
         try {
             Properties properties = new Properties();
             //todo 修改绝对路径
-            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
-            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+//            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+//            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
+
+            InputStream inStream = new FileInputStream("D:\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
             properties.load(inStream);
             properties.setProperty("mercari.item.dpop", itemdpop);
+
+            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
             properties.store(outputStream, "summer");
             outputStream.close();
         }catch (Exception e){

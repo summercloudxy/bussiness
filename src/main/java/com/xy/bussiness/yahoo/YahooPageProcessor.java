@@ -1,6 +1,7 @@
 package com.xy.bussiness.yahoo;
 
 import com.xy.bussiness.yahoo.mybean.YahooItemRecord;
+import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
@@ -21,15 +22,15 @@ public class YahooPageProcessor implements PageProcessor {
 
     public void process(Page page) {
         Elements empty = page.getHtml().getDocument().body().getElementsByClass("Empty");
-        if (empty.size() > 0){
+        if (empty.size() > 0) {
             page.putField("empty", true);
             return;
         }
         Elements note = page.getHtml().getDocument().body().getElementsByClass("Notice__wandText");
-        if (note.size() > 0){
+        if (note.size() > 0) {
             Element element = note.get(0);
             boolean conta = element.text().contains("一致する商品");
-            if (conta){
+            if (conta) {
                 page.putField("empty", true);
                 return;
             }
@@ -37,33 +38,79 @@ public class YahooPageProcessor implements PageProcessor {
 
         page.putField("empty", false);
 
-
         Elements products = page.getHtml().getDocument().body().getElementsByClass("Product");
         List<YahooItemRecord> yahooItemRecords = new ArrayList<>();
         for (Element product : products) {
-            YahooItemRecord yahooItemRecord = new YahooItemRecord();
-            Elements productDetails = product.getElementsByClass("Product__bonus");
-            Element productDetail = productDetails.get(0);
-            String auctionId = productDetail.attr("data-auction-id");
-            String auctionEndTime = productDetail.attr("data-auction-endtime");
-            String buyNowPrice = productDetail.attr("data-auction-buynowprice");
-            String categoryIdPath = productDetail.attr("data-auction-categoryidpath");
-            String auctionPrice = productDetail.attr("data-auction-price");
-            String auctionStartPrice = productDetail.attr("data-auction-startprice");
-            Elements productImages = product.getElementsByClass("Product__imageData");
-            Element productionImage = productImages.get(0);
-            String title = productionImage.attr("alt");
-            String imageUrl = productionImage.attr("src");
+            try {
+                YahooItemRecord yahooItemRecord = new YahooItemRecord();
+                Elements product__bonus = product.getElementsByClass("Product__bonus");
+                Element product__bonu = product__bonus.get(0);
+                Attributes attributes = product__bonu.attributes();
+                // 雅虎商品
+                if (attributes.size() > 8) {
+                    String auctionId = product__bonu.attr("data-auction-id");
+                    String auctionEndTime = product__bonu.attr("data-auction-endtime");
+                    String buyNowPrice = product__bonu.attr("data-auction-buynowprice");
+                    String categoryIdPath = product__bonu.attr("data-auction-categoryidpath");
+                    String auctionPrice = product__bonu.attr("data-auction-price");
+                    String auctionStartPrice = product__bonu.attr("data-auction-startprice");
+                    Elements productImages = product.getElementsByClass("Product__imageData");
+                    Element productionImage = productImages.get(0);
+                    String title = productionImage.attr("alt");
+                    String imageUrl = productionImage.attr("src");
+                    Elements elementsByClass = product.getElementsByClass("Product__icon Product__icon--unused");
+                    Boolean isNew = elementsByClass.size() > 0;
+
+                    yahooItemRecord.setAuctionId(auctionId);
+                    yahooItemRecord.setTitle(title);
+                    yahooItemRecord.setImageUrl(imageUrl);
+                    yahooItemRecord.setBuyNowPrice(Integer.valueOf(buyNowPrice));
+                    yahooItemRecord.setAuctionPrice(Integer.valueOf(auctionPrice));
+                    yahooItemRecord.setOriginPrice(Integer.valueOf(auctionStartPrice));
+                    yahooItemRecord.setEndTime(new Date(Long.parseLong(auctionEndTime) * 1000));
+                    yahooItemRecord.setIsNew(isNew);
+                    yahooItemRecords.add(yahooItemRecord);
+                } else {
+                    // paypal商品
+                    Elements productDetails = product.getElementsByClass("Product__detail");
+                    Element productDetail = productDetails.get(0);
+                    Elements priceInfos = productDetail.getElementsByClass("Product__price");
+                    if (priceInfos.size() > 1) {
+                        Element jijuePrice = priceInfos.get(1);
+                        Elements product__priceValues = jijuePrice.getElementsByClass("Product__priceValue");
+                        Element product__priceValue = product__priceValues.get(0);
+                        String text = product__priceValue.text();
+                        String buyNowPrice = text.replace("円", "").replace(",", "");
+                        yahooItemRecord.setBuyNowPrice(Integer.valueOf(buyNowPrice));
+                    }
+                    Elements product__title = productDetail.getElementsByClass("Product__titleLink js-browseHistory-add ");
+                    if (product__title == null || product__title.size() == 0) {
+                        product__title = productDetail.getElementsByClass("Product__titleLink js-browseHistory-add js-rapid-override");
+                    }
+                    Element product__title1 = product__title.get(0);
+                    String auctionId = product__title1.attr("data-auction-id");
+                    String auctionEndTime = product__title1.attr("data-auction-endtime");
+                    String categoryIdPath = product__title1.attr("data-auction-category");
+                    String auctionPrice = product__title1.attr("data-auction-price");
+                    String title = product__title1.attr("data-auction-title");
+                    String imageUrl = product__title1.attr("data-auction-img");
+                    Elements elementsByClass = product.getElementsByClass("Product__icon Product__icon--unused");
+                    Boolean isNew = elementsByClass.size() > 0;
+                    yahooItemRecord.setAuctionId(auctionId);
+                    yahooItemRecord.setTitle(title);
+                    yahooItemRecord.setImageUrl(imageUrl);
+                    yahooItemRecord.setAuctionPrice(Integer.valueOf(auctionPrice));
+                    yahooItemRecord.setOriginPrice(Integer.valueOf(auctionPrice));
+                    yahooItemRecord.setIsPaypal(true);
+                    yahooItemRecord.setIsNew(isNew);
+                    yahooItemRecords.add(yahooItemRecord);
+
+                }
 
 
-            yahooItemRecord.setAuctionId(auctionId);
-            yahooItemRecord.setTitle(title);
-            yahooItemRecord.setImageUrl(imageUrl);
-            yahooItemRecord.setBuyNowPrice(Integer.valueOf(buyNowPrice));
-            yahooItemRecord.setAuctionPrice(Integer.valueOf(auctionPrice));
-            yahooItemRecord.setOriginPrice(Integer.valueOf(auctionStartPrice));
-            yahooItemRecord.setEndTime(new Date(Long.parseLong(auctionEndTime)*1000));
-            yahooItemRecords.add(yahooItemRecord);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         page.putField("items", yahooItemRecords);
     }

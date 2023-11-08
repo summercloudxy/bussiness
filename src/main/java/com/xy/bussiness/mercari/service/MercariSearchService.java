@@ -117,7 +117,7 @@ public class MercariSearchService {
 
     public void check(MercariSearchCondition searchCondition, List<ItemsItem> itemList) throws Exception {
         List<ItemRecord> lastItemList = mercariMapper.getItemRecordsByCondition(searchCondition.getId());
-        Map<String, ItemRecord> oldItems = lastItemList.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity()));
+        Map<String, ItemRecord> oldItems = lastItemList.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
         List<ItemRecord> newItems = new ArrayList<>();
         List<ItemRecord> currentAllItems = new ArrayList<>();
         List<ItemRecord> priceItems = new ArrayList<>();

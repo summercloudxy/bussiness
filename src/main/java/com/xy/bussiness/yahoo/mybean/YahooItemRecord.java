@@ -23,6 +23,7 @@ public class YahooItemRecord {
     private Boolean interest;
     private Date createDate;
     private Date updateDate;
-
+    private Boolean isPaypal = false;
+    private Boolean isNew = false;
 
 }

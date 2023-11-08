@@ -155,9 +155,11 @@ CREATE TABLE `yahoo_item_record`  (
                                       `update_date` datetime(0) NULL DEFAULT NULL,
                                       `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
                                       `end_time` datetime(0) NULL DEFAULT NULL,
+                                      `is_paypal` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT 0,
+                                      `is_new` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
                                       PRIMARY KEY (`id`) USING BTREE,
                                       INDEX `search_condition_id`(`search_condition_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2136291909 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2136306441 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for yahoo_search_condition

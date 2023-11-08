@@ -23,7 +23,7 @@ public class WindowsNotification {
         }
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void init() throws AWTException {
         SystemTray tray = SystemTray.getSystemTray();
 

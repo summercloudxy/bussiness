@@ -29,4 +29,9 @@ public class WechatSenderTestController {
     public void sendMsg(String toUser,String msg){
         wechatSender.sendMsg(toUser, msg);
     }
+
+    @GetMapping("/receive")
+    public void receiveMsg(String msg){
+        System.out.println(msg);
+    }
 }

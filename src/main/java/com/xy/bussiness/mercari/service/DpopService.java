@@ -8,9 +8,10 @@ import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v85.network.Network;
-import org.openqa.selenium.devtools.v85.network.model.Request;
+import org.openqa.selenium.devtools.v112.network.Network;
+import org.openqa.selenium.devtools.v112.network.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,7 @@ public class DpopService {
             try {
                 this.updateDpop();
                 this.updateSellerDpop();
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }, 0, 1, TimeUnit.DAYS);
@@ -59,9 +60,10 @@ public class DpopService {
 
     public void updateDpop() throws InterruptedException {
 
-
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
         System.setProperty("webdriver.chrome.driver", driverAddress);
-        ChromeDriver chromeDriver = new ChromeDriver();
+        ChromeDriver chromeDriver = new ChromeDriver(options);
 
         DevTools chromeDevTools = chromeDriver.getDevTools();
         chromeDevTools.createSession();
@@ -112,9 +114,10 @@ public class DpopService {
 
     public void updateSellerDpop() throws InterruptedException {
 
-
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
         System.setProperty("webdriver.chrome.driver", driverAddress);
-        ChromeDriver chromeDriver = new ChromeDriver();
+        ChromeDriver chromeDriver = new ChromeDriver(options);
 
         DevTools chromeDevTools = chromeDriver.getDevTools();
         chromeDevTools.createSession();

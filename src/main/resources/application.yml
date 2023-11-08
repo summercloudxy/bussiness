@@ -5,7 +5,7 @@ spring:
     # 发送者邮箱
     username: 469654418@qq.com
     # 配置密码，注意不是真正的密码，而是刚刚申请到的授权码
-    password: iwxgtxgljulabjaf
+    password: xtpxcaddtdxgbgca
     # 端口号465或587
     port: 587
     # 默认的邮件编码为UTF-8
@@ -39,10 +39,10 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 server:
-  port: 8112
+  port: 8111
 
 
 
 chromedriver:
-  address: C:/Users/admin/Desktop/chromedriver_win32/chromedriver.exe
+  address: C:/Program Files/Google/Chrome/Application/chromedriver.exe
 

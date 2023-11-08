@@ -114,7 +114,11 @@ public class YahooPipeline implements Pipeline {
 
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
+            if (record.getIsPaypal()){
+                stringBuilder.append("<a href='https://paypayfleamarket.yahoo.co.jp/item/");
+            }else {
+                stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
+            }
             stringBuilder.append(record.getAuctionId());
             stringBuilder.append("'><img src='").append(record.getImageUrl()).append("'/></a>   ");
             stringBuilder.append("</div>");
@@ -128,7 +132,11 @@ public class YahooPipeline implements Pipeline {
 //                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
 //            }
 //            stringBuilder.append("</div>");
-
+            if (record.getIsNew()){
+                stringBuilder.append("<div>");
+                stringBuilder.append("全新");
+                stringBuilder.append("</div>");
+            }
             stringBuilder.append("<div>");
             stringBuilder.append("价格：").append(record.getAuctionPrice());
             stringBuilder.append("</div>");
@@ -160,7 +168,11 @@ public class YahooPipeline implements Pipeline {
         for (YahooItemRecord record : recordList) {
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
+            if (record.getIsPaypal()){
+                stringBuilder.append("<a href='https://paypayfleamarket.yahoo.co.jp/item/");
+            }else {
+                stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
+            }
             stringBuilder.append(record.getAuctionId());
             stringBuilder.append("'><img src='").append(record.getImageUrl()).append("'/></a>   ");
             stringBuilder.append("</div>");
@@ -174,7 +186,11 @@ public class YahooPipeline implements Pipeline {
 //                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
 //            }
 //            stringBuilder.append("</div>");
-
+            if (record.getIsNew()){
+                stringBuilder.append("<div>");
+                stringBuilder.append("全新");
+                stringBuilder.append("</div>");
+            }
 
             stringBuilder.append("<div>");
             stringBuilder.append(record.getOriginPrice()).append("->").append(record.getAuctionPrice());
