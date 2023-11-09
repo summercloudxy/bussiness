@@ -86,12 +86,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.biezhi</groupId>
-            <artifactId>wechat-api</artifactId>
-            <version>1.0.7-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>us.codecraft</groupId>
             <artifactId>webmagic-core</artifactId>
             <version>0.7.5</version>
@@ -129,35 +123,14 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.10.0</version>
+            <version>4.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>4.15.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-edge-driver</artifactId>-->
-<!--            <version>4.9.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-firefox-driver</artifactId>-->
-<!--            <version>4.9.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-ie-driver</artifactId>-->
-<!--            <version>4.9.1</version>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-safari-driver</artifactId>-->
-<!--            <version>4.9.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.seleniumhq.selenium</groupId>-->
-<!--            <artifactId>selenium-support</artifactId>-->
-<!--            <version>4.9.1</version>-->
-<!--        </dependency>-->
 
           <dependency>
             <groupId>redis.clients</groupId>
