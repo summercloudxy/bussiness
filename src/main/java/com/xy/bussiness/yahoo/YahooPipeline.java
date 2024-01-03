@@ -8,6 +8,7 @@ import com.xy.bussiness.yahoo.mybean.YahooItemRecord;
 import com.xy.bussiness.yahoo.mybean.YahooSearchCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.ResultItems;
@@ -32,6 +33,9 @@ public class YahooPipeline implements Pipeline {
     private YahooService yahooService;
     @Autowired
     private MyMailSender mailSender;
+
+    @Value("${notification.host}")
+    private String notifyHost;
 
     private Map<String,List<YahooItemRecord>> recordMap = new ConcurrentHashMap<>();
 
@@ -141,14 +145,14 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append("价格：").append(record.getAuctionPrice());
             stringBuilder.append("</div>");
 
-//            stringBuilder.append("<div>");
-//            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
-//            stringBuilder.append(record.getAuctionId());
-//            stringBuilder.append("'>点击购买</a>");
-//            stringBuilder.append("</div>");
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='https://yahoo.jpshuntong.com/Index/goodsitem.html?goodsid=");
+            stringBuilder.append(record.getAuctionId());
+            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/yahoo/setInterest?interest=1&itemId=");
+            stringBuilder.append("<a href='https://" + notifyHost + "/yahoo/setInterest?interest=1&itemId=");
             stringBuilder.append(record.getAuctionId());
             stringBuilder.append("'>添加关注</a>");
             stringBuilder.append("</div>");
@@ -189,7 +193,7 @@ public class YahooPipeline implements Pipeline {
             if (record.getIsNew()){
                 stringBuilder.append("<div>");
                 stringBuilder.append("全新");
-                stringBuilder.append("</div>");
+                                                         stringBuilder.append("</div>");
             }
 
             stringBuilder.append("<div>");
@@ -197,14 +201,15 @@ public class YahooPipeline implements Pipeline {
 
             stringBuilder.append("</div>");
 
-//            stringBuilder.append("<div>");
-//            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
-//            stringBuilder.append(record.getMercariItemId());
-//            stringBuilder.append("'>点击购买</a>");
-//            stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/yahoo/setInterest?interest=0&itemId=");
+            stringBuilder.append("<a href='https://yahoo.jpshuntong.com/Index/goodsitem.html?goodsid=");
+            stringBuilder.append(record.getAuctionId());
+            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='https://" + notifyHost + "/yahoo/setInterest?interest=0&itemId=");
             stringBuilder.append(record.getAuctionId());
             stringBuilder.append("'>不再关注</a>");
             stringBuilder.append("</div>");

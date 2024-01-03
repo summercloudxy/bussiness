@@ -76,7 +76,7 @@ public class MercariCrawler  {
 
         // 请求头
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept-Encoding", "gzip, deflate, br");
+        headers.add("Accept-Encoding", "gzip, deflate");
         headers.add("Connection", "keep-alive");
         headers.add("authority", "api.mercari.jp");
         headers.add("accept", "application/json, text/plain, */*");
@@ -93,7 +93,7 @@ public class MercariCrawler  {
         // 请求
         HttpEntity<SearchItemListRequest> requst = new HttpEntity<>(searchItemListRequest, headers);
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-        ResponseEntity<ItemListResponse> responseEntity = restTemplate.postForEntity("https://api.mercari.jp/v2/entities:search", requst, ItemListResponse.class);
+       ResponseEntity<ItemListResponse> responseEntity = restTemplate.postForEntity("https://api.mercari.jp/v2/entities:search", requst, ItemListResponse.class);
         return responseEntity.getBody().getItems();
 
     }

@@ -55,7 +55,6 @@ public class DpopService {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         System.setProperty("webdriver.chrome.driver", driverAddress);
-//        ChromeDriver chromeDriver = new ChromeDriver(options);
         ChromeDriver chromeDriver = new ChromeDriver(options);
         DevTools chromeDevTools = chromeDriver.getDevTools();
         chromeDevTools.createSession();

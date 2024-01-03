@@ -8,6 +8,7 @@ import com.xy.bussiness.mercari.mybean.SellerItemRecord;
 import com.xy.bussiness.notification.WindowsNotification;
 import com.xy.bussiness.notification.mail.MyMailSender;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,9 @@ public class NotificationService {
     @Autowired
     WindowsNotification windowsNotification;
     ExecutorService executorService = Executors.newFixedThreadPool(5);
+
+    @Value("${notification.host}")
+    private String notifyHost;
 
     public void sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
@@ -86,7 +90,7 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=1&itemId=");
+            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/setInterest?interest=1&itemId=");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>添加关注</a>");
             stringBuilder.append("</div>");
@@ -142,7 +146,7 @@ public class NotificationService {
 
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/mercari/setInterest?interest=0&itemId=");
+            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/setInterest?interest=0&itemId=");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>不再关注</a>");
             stringBuilder.append("</div>");

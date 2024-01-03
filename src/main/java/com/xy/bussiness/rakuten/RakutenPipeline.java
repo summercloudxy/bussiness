@@ -11,6 +11,7 @@ import com.xy.bussiness.rakuten.mybean.RakutenSearchCondition;
 import com.xy.bussiness.rakuten.service.RakutenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.ResultItems;
@@ -34,7 +35,9 @@ public class RakutenPipeline implements Pipeline {
     private RakutenItemRecordService rakutenItemRecordService;
     @Autowired
     private MyMailSender mailSender;
-
+    @Value("${notification.host}")
+    private String notifyHost;
+    
     @Override
     public void process(ResultItems resultItems, Task task) {
         Boolean empty = resultItems.get("empty");
@@ -159,7 +162,7 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/rakuten/setInterest?interest=1&itemId=");
+            stringBuilder.append("<a href='https://" + notifyHost + "/rakuten/setInterest?interest=1&itemId=");
             stringBuilder.append(record.getItemId());
             stringBuilder.append("'>添加关注</a>");
             stringBuilder.append("</div>");
@@ -207,7 +210,7 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://5699805pw3.zicp.fun/rakuten/setInterest?interest=0&itemId=");
+            stringBuilder.append("<a href='https://" + notifyHost + "/rakuten/setInterest?interest=0&itemId=");
             stringBuilder.append(record.getItemId());
             stringBuilder.append("'>不再关注</a>");
             stringBuilder.append("</div>");
