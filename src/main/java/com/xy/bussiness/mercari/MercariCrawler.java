@@ -147,11 +147,11 @@ public class MercariCrawler  {
             //todo 修改绝对路径
             lock.lock();
 
-            InputStream inStream = new FileInputStream("D:\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
+            InputStream inStream = new FileInputStream("E:\\myproject\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
             properties.load(inStream);
             properties.setProperty("mercari.dpop", dpop);
 
-            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+            OutputStream outputStream = new FileOutputStream("E:\\myproject\\bussiness\\src\\main\\resources\\application.properties");
             properties.store(outputStream, "summer");
             outputStream.close();
             lock.unlock();
@@ -166,12 +166,12 @@ public class MercariCrawler  {
             Properties properties = new Properties();
             //todo 修改绝对路径
             lock.lock();
-            InputStream inStream = new FileInputStream("D:\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
+            InputStream inStream = new FileInputStream("E:\\myproject\\bussiness\\src\\main\\resources\\application.properties");//获取配置文件输入流
 //            InputStream inStream = getClass().getResourceAsStream("/application.properties");//获取配置文件输入流
             properties.load(inStream);
             properties.setProperty("mercari.seller.dpop", dpop);
 
-            OutputStream outputStream = new FileOutputStream("D:\\bussiness\\src\\main\\resources\\application.properties");
+            OutputStream outputStream = new FileOutputStream("E:\\myproject\\bussiness\\src\\main\\resources\\application.properties");
             properties.store(outputStream, "xy");
             outputStream.close();
             lock.unlock();

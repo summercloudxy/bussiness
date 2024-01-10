@@ -26,16 +26,16 @@ public class NotificationService {
     @Value("${notification.host}")
     private String notifyHost;
 
-    public void sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
+    public boolean sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
 //        executorService.execute(()->windowsNotification.display("煤炉:" + searchCondition.getBrand() + description + "上新啦",getNewWindowsContent(newItems)));
-        mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems));
+       return mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems),0);
 
     }
 
 
-    public void sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
-        mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceMailContent(priceItems));
+    public boolean sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
+        return  mailSender.send("煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceMailContent(priceItems),0);
     }
 
 

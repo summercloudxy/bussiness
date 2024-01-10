@@ -12,3 +12,6 @@ https://registry.npmmirror.com/binary.html?path=chromedriver/
 
 https://googlechromelabs.github.io/chrome-for-testing/
 chrome.exe和chromedriver.exe放在同一目录下
+
+注意在这里修改properties的绝对路径
+com.xy.bussiness.mercari.MercariCrawler.setDpop

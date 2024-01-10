@@ -24,12 +24,15 @@ public class MyMailSender {
 
     @Autowired
     JavaMailSender javaMailSender;
-    Long timestamp = System.currentTimeMillis();
-    AtomicInteger atomicInteger = new AtomicInteger(0);
+    @Autowired
+    MailLimiter mailLimiter;
 
     BlockingQueue<MimeMessage> queue = new LinkedBlockingQueue(10000);
 
-    public boolean send(String topic, String content) throws Exception {
+    public boolean send(String topic, String content,int tryCount) throws Exception {
+        if (tryCount > 3){
+            return false;
+        }
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setSubject(topic);
@@ -37,25 +40,35 @@ public class MyMailSender {
         helper.setTo("fengchunzhimei@163.com");
         helper.setSentDate(new Date());
         helper.setText(content, true);
-        queue.offer(mimeMessage);
-//        javaMailSender.send(mimeMessage);
+        if (!mailLimiter.isAllowed()) {
+            Thread.sleep(3000L);
+            send(topic, content,tryCount + 1);
+        }
+        try {
+            javaMailSender.send(mimeMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Thread.sleep(3000L);
+            send(topic, content,tryCount + 1);
+        }
         return true;
     }
 
 
     @PostConstruct
     public void realSend() {
-        new Thread(()->{
-        while (true) {
-            try {
-                MimeMessage take = queue.take();
-                javaMailSender.send(take);
-                Thread.sleep(5000L);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        new Thread(() -> {
+            while (true) {
+                try {
+                    MimeMessage take = queue.take();
+                    javaMailSender.send(take);
+                    Thread.sleep(5000L);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
-        }}).start();
+            }
+        }).start();
     }
 
 

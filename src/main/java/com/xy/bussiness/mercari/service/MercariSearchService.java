@@ -117,7 +117,7 @@ public class MercariSearchService {
 
     public void check(MercariSearchCondition searchCondition, List<ItemsItem> itemList) throws Exception {
         List<ItemRecord> lastItemList = mercariMapper.getItemRecordsByCondition(searchCondition.getId());
-        Map<String, ItemRecord> oldItems = lastItemList.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
+        Map<String, ItemRecord> oldItems = lastItemList.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
         List<ItemRecord> newItems = new ArrayList<>();
         List<ItemRecord> currentAllItems = new ArrayList<>();
         List<ItemRecord> priceItems = new ArrayList<>();
@@ -157,20 +157,23 @@ public class MercariSearchService {
 
         if (!CollectionUtils.isEmpty(noticeNewItems)) {
             log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItems.size());
-            notificationService.sendNew(searchCondition, noticeNewItems);
+            boolean sendResult = notificationService.sendNew(searchCondition, noticeNewItems);
+            if (sendResult && !CollectionUtils.isEmpty(newItems)) {
+                itemRecordService.saveBatch(newItems);
+            }
         }
-        if (!CollectionUtils.isEmpty(newItems)) {
-            itemRecordService.saveBatch(newItems);
-        }
+
         if (!CollectionUtils.isEmpty(priceItems)) {
             log.info("搜索条件-[{}]降价啦,推送通知", searchCondition.getDescription());
-            notificationService.sendPrice(searchCondition, priceItems);
-            for (ItemRecord priceItem : priceItems) {
-                LambdaUpdateWrapper<ItemRecord> updateWrapper = Wrappers.lambdaUpdate();
-                updateWrapper.eq(ItemRecord::getMercariItemId, priceItem.getMercariItemId());
-                updateWrapper.set(ItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
-                updateWrapper.set(ItemRecord::getUpdateDate, priceItem.getUpdateDate());
-                itemRecordService.update(updateWrapper);
+            boolean sendResult = notificationService.sendPrice(searchCondition, priceItems);
+            if (sendResult) {
+                for (ItemRecord priceItem : priceItems) {
+                    LambdaUpdateWrapper<ItemRecord> updateWrapper = Wrappers.lambdaUpdate();
+                    updateWrapper.eq(ItemRecord::getMercariItemId, priceItem.getMercariItemId());
+                    updateWrapper.set(ItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
+                    updateWrapper.set(ItemRecord::getUpdateDate, priceItem.getUpdateDate());
+                    itemRecordService.update(updateWrapper);
+                }
             }
         }
     }

@@ -37,7 +37,7 @@ public class YahooPipeline implements Pipeline {
     @Value("${notification.host}")
     private String notifyHost;
 
-    private Map<String,List<YahooItemRecord>> recordMap = new ConcurrentHashMap<>();
+    private Map<String, List<YahooItemRecord>> recordMap = new ConcurrentHashMap<>();
 
     @Override
     public void process(ResultItems resultItems, Task task) {
@@ -46,8 +46,7 @@ public class YahooPipeline implements Pipeline {
             return;
         }
         List<YahooItemRecord> items = resultItems.get("items");
-        if (CollectionUtils.isEmpty(items))
-        {
+        if (CollectionUtils.isEmpty(items)) {
             return;
         }
         String uuid = task.getUUID();
@@ -60,7 +59,7 @@ public class YahooPipeline implements Pipeline {
             LambdaQueryWrapper<YahooItemRecord> queryWrapper = Wrappers.lambdaQuery(YahooItemRecord.class);
             queryWrapper.eq(YahooItemRecord::getSearchConditionId, searchConditionId);
             List<YahooItemRecord> oldItemList = yahooItemRecordService.list(queryWrapper);
-            Map<String, YahooItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(YahooItemRecord::getAuctionId, Function.identity(),(a, b)-> a));
+            Map<String, YahooItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(YahooItemRecord::getAuctionId, Function.identity(), (a, b) -> a));
             List<YahooItemRecord> newItemList = new ArrayList<>();
             List<YahooItemRecord> priceItemList = new ArrayList<>();
             for (YahooItemRecord item : items) {
@@ -80,34 +79,36 @@ public class YahooPipeline implements Pipeline {
                 }
             }
 
-            if (!CollectionUtils.isEmpty(newItemList)){
+            if (!CollectionUtils.isEmpty(newItemList)) {
                 log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItemList.size());
-                sendNewMail(searchCondition,newItemList);
-                yahooItemRecordService.saveBatch(newItemList);
+                boolean sendResult = sendNewMail(searchCondition, newItemList);
+                if (sendResult) {
+                    yahooItemRecordService.saveBatch(newItemList);
+                }
 
             }
-            if (!CollectionUtils.isEmpty(priceItemList)){
+            if (!CollectionUtils.isEmpty(priceItemList)) {
                 log.info("搜索条件-[{}]降价了,推送通知", searchCondition.getDescription(), priceItemList.size());
-                sendPriceMail(searchCondition,priceItemList);
-
-                yahooItemRecordService.updateBatchById(priceItemList);
+                boolean sendResult = sendPriceMail(searchCondition, priceItemList);
+                if (sendResult) {
+                    yahooItemRecordService.updateBatchById(priceItemList);
+                }
             }
             yahooService.addTask(split[0], String.valueOf(Integer.valueOf(split[1]) + 1));
-        }catch (Exception e){
-            log.error("雅虎：处理[{}]第[{}]页的数据失败",searchCondition.getDescription(),pageNum,e);
+        } catch (Exception e) {
+            log.error("雅虎：处理[{}]第[{}]页的数据失败", searchCondition.getDescription(), pageNum, e);
         }
 
     }
 
 
-
-    public void sendNewMail(YahooSearchCondition searchCondition, List<YahooItemRecord> newItems) throws Exception {
+    public boolean sendNewMail(YahooSearchCondition searchCondition, List<YahooItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        mailSender.send("雅虎:"+ searchCondition.getBrand() + description + "上新啦", getNewContent(newItems));
+        return mailSender.send("雅虎:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems),0);
     }
 
-    public void sendPriceMail(YahooSearchCondition searchCondition, List<YahooItemRecord> priceItems) throws Exception {
-        mailSender.send("雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems));
+    public boolean sendPriceMail(YahooSearchCondition searchCondition, List<YahooItemRecord> priceItems) throws Exception {
+        return mailSender.send("雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems),0);
     }
 
 
@@ -118,9 +119,9 @@ public class YahooPipeline implements Pipeline {
 
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            if (record.getIsPaypal()){
+            if (record.getIsPaypal()) {
                 stringBuilder.append("<a href='https://paypayfleamarket.yahoo.co.jp/item/");
-            }else {
+            } else {
                 stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
             }
             stringBuilder.append(record.getAuctionId());
@@ -136,7 +137,7 @@ public class YahooPipeline implements Pipeline {
 //                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
 //            }
 //            stringBuilder.append("</div>");
-            if (record.getIsNew()){
+            if (record.getIsNew()) {
                 stringBuilder.append("<div>");
                 stringBuilder.append("全新");
                 stringBuilder.append("</div>");
@@ -172,9 +173,9 @@ public class YahooPipeline implements Pipeline {
         for (YahooItemRecord record : recordList) {
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            if (record.getIsPaypal()){
+            if (record.getIsPaypal()) {
                 stringBuilder.append("<a href='https://paypayfleamarket.yahoo.co.jp/item/");
-            }else {
+            } else {
                 stringBuilder.append("<a href='https://page.auctions.yahoo.co.jp/jp/auction/");
             }
             stringBuilder.append(record.getAuctionId());
@@ -190,10 +191,10 @@ public class YahooPipeline implements Pipeline {
 //                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
 //            }
 //            stringBuilder.append("</div>");
-            if (record.getIsNew()){
+            if (record.getIsNew()) {
                 stringBuilder.append("<div>");
                 stringBuilder.append("全新");
-                                                         stringBuilder.append("</div>");
+                stringBuilder.append("</div>");
             }
 
             stringBuilder.append("<div>");

@@ -37,7 +37,7 @@ public class RakutenPipeline implements Pipeline {
     private MyMailSender mailSender;
     @Value("${notification.host}")
     private String notifyHost;
-    
+
     @Override
     public void process(ResultItems resultItems, Task task) {
         Boolean empty = resultItems.get("empty");
@@ -45,8 +45,7 @@ public class RakutenPipeline implements Pipeline {
             return;
         }
         List<RakutenItemRecord> items = resultItems.get("items");
-        if (CollectionUtils.isEmpty(items))
-        {
+        if (CollectionUtils.isEmpty(items)) {
             return;
         }
         String uuid = task.getUUID();
@@ -59,7 +58,7 @@ public class RakutenPipeline implements Pipeline {
             LambdaQueryWrapper<RakutenItemRecord> queryWrapper = Wrappers.lambdaQuery(RakutenItemRecord.class);
             queryWrapper.eq(RakutenItemRecord::getSearchConditionId, searchConditionId);
             List<RakutenItemRecord> oldItemList = rakutenItemRecordService.list(queryWrapper);
-            Map<String, RakutenItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(RakutenItemRecord::getItemId, Function.identity(),(a, b)-> a));
+            Map<String, RakutenItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(RakutenItemRecord::getItemId, Function.identity(), (a, b) -> a));
             List<RakutenItemRecord> newItemList = new ArrayList<>();
             List<RakutenItemRecord> priceItemList = new ArrayList<>();
             List<RakutenItemRecord> noticeNewItems = new ArrayList<>();
@@ -72,7 +71,7 @@ public class RakutenPipeline implements Pipeline {
                     item.setCreateDate(new Date());
                     newItemList.add(item);
                     LambdaQueryWrapper<RakutenItemRecord> wrappers = Wrappers.lambdaQuery();
-                    wrappers.eq(RakutenItemRecord::getItemId,item.getItemId());
+                    wrappers.eq(RakutenItemRecord::getItemId, item.getItemId());
                     List<RakutenItemRecord> itemRecordByItemId = rakutenItemRecordService.list(wrappers);
                     if (CollectionUtils.isEmpty(itemRecordByItemId)) {
                         noticeNewItems.add(item);
@@ -88,44 +87,46 @@ public class RakutenPipeline implements Pipeline {
             }
 
 
-            if (!CollectionUtils.isEmpty(noticeNewItems)){
-                sendNewMail(searchCondition,noticeNewItems);
-            }
-            if (!CollectionUtils.isEmpty(newItemList)){
+            if (!CollectionUtils.isEmpty(noticeNewItems)) {
+                boolean sendResult = sendNewMail(searchCondition, noticeNewItems);
                 log.info("搜索条件-[{}]有[{}]条上新,推送通知", searchCondition.getDescription(), newItemList.size());
-                rakutenItemRecordService.saveBatch(newItemList);
+                if (sendResult && !CollectionUtils.isEmpty(newItemList)) {
+                    rakutenItemRecordService.saveBatch(newItemList);
+                }
             }
-            if (!CollectionUtils.isEmpty(priceItemList)){
+
+            if (!CollectionUtils.isEmpty(priceItemList)) {
                 log.info("搜索条件-[{}]降价了,推送通知", searchCondition.getDescription(), priceItemList.size());
-                sendPriceMail(searchCondition,priceItemList);
-                for (RakutenItemRecord priceItem : priceItemList) {
-                    LambdaUpdateWrapper<RakutenItemRecord> updateWrapper = Wrappers.lambdaUpdate();
-                    updateWrapper.eq(RakutenItemRecord::getItemId, priceItem.getItemId());
-                    updateWrapper.set(RakutenItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
-                    updateWrapper.set(RakutenItemRecord::getUpdateDate, priceItem.getUpdateDate());
-                    rakutenItemRecordService.update(updateWrapper);
+                boolean sendResult = sendPriceMail(searchCondition, priceItemList);
+                if (sendResult) {
+                    for (RakutenItemRecord priceItem : priceItemList) {
+                        LambdaUpdateWrapper<RakutenItemRecord> updateWrapper = Wrappers.lambdaUpdate();
+                        updateWrapper.eq(RakutenItemRecord::getItemId, priceItem.getItemId());
+                        updateWrapper.set(RakutenItemRecord::getCurrentPrice, priceItem.getCurrentPrice());
+                        updateWrapper.set(RakutenItemRecord::getUpdateDate, priceItem.getUpdateDate());
+                        rakutenItemRecordService.update(updateWrapper);
+                    }
                 }
             }
             Integer currentPageNum = Integer.valueOf(split[1]);
 
-            if (currentPageNum < searchCondition.getMaxPageNum() ) {
+            if (currentPageNum < searchCondition.getMaxPageNum()) {
                 rakutenService.addTask(split[0], String.valueOf(currentPageNum + 1));
             }
-        }catch (Exception e){
-            log.error("乐天：处理[{}]第[{}]页的数据失败",searchCondition.getDescription(),pageNum,e);
+        } catch (Exception e) {
+            log.error("乐天：处理[{}]第[{}]页的数据失败", searchCondition.getDescription(), pageNum, e);
         }
 
     }
 
 
-
-    public void sendNewMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> newItems) throws Exception {
+    public boolean sendNewMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        mailSender.send("乐天:"+ searchCondition.getBrand() + description + "上新啦", getNewContent(newItems));
+        return mailSender.send("乐天:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems),0);
     }
 
-    public void sendPriceMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> priceItems) throws Exception {
-        mailSender.send("乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems));
+    public boolean sendPriceMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> priceItems) throws Exception {
+        return mailSender.send("乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems),0);
     }
 
 

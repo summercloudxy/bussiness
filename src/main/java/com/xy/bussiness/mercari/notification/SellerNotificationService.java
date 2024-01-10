@@ -27,15 +27,15 @@ public class SellerNotificationService {
     private String notifyHost;
 
 
-    public void sendNew(MercariSellerSearchCondition searchCondition, List<SellerItemRecord> newItems) throws Exception {
+    public boolean sendNew(MercariSellerSearchCondition searchCondition, List<SellerItemRecord> newItems) throws Exception {
         String description = searchCondition.getSellerId();
 //        executorService.execute(()->windowsNotification.display("关注的用户上新啦",getNewWindowsContent(newItems)));
-        mailSender.send("关注的用户上新", getSellerNewMailContent(newItems));
+       return mailSender.send("关注的用户上新", getSellerNewMailContent(newItems),0);
 
     }
 
-    public void sendPrice(MercariSellerSearchCondition searchCondition, List<SellerItemRecord> priceItems) throws Exception {
-        mailSender.send("关注的用户降价啦", getSellerPriceMailContent(priceItems));
+    public boolean sendPrice(MercariSellerSearchCondition searchCondition, List<SellerItemRecord> priceItems) throws Exception {
+        return mailSender.send("关注的用户降价啦", getSellerPriceMailContent(priceItems),0);
     }
 
 
