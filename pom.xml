@@ -190,6 +190,16 @@
             <name>lium maven</name>
             <url>https://nexus.javasvn.com/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>spring</id>
+            <url>https://maven.aliyun.com/repository/spring</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
 </project>
