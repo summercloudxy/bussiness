@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class MailLimiter {
-    private static final int LIMIT = 10;
+    private static final int LIMIT = 9;
     private static AtomicInteger counter = new AtomicInteger(0);
 
     private static long lastResetTime = System.currentTimeMillis();

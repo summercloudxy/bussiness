@@ -112,7 +112,7 @@ public class MercariCrawler  {
 
         // 请求头
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept-Encoding", "gzip, deflate, br");
+        headers.add("Accept-Encoding", "gzip, deflate");
         headers.add("Connection", "keep-alive");
         headers.add("authority", "api.mercari.jp");
         headers.add("accept", "application/json, text/plain, */*");

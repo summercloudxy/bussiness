@@ -29,8 +29,8 @@ public class MyMailSender {
 
     BlockingQueue<MimeMessage> queue = new LinkedBlockingQueue(10000);
 
-    public boolean send(String topic, String content,int tryCount) throws Exception {
-        if (tryCount > 3){
+    public boolean send(String topic, String content, int tryCount) throws Exception {
+        if (tryCount > 3) {
             return false;
         }
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -41,17 +41,18 @@ public class MyMailSender {
         helper.setSentDate(new Date());
         helper.setText(content, true);
         if (!mailLimiter.isAllowed()) {
-            Thread.sleep(3000L);
-            send(topic, content,tryCount + 1);
+            Thread.sleep(5000L);
+            return send(topic, content, tryCount + 1);
+        } else {
+            try {
+                javaMailSender.send(mimeMessage);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(5000L);
+                return send(topic, content, tryCount + 1);
+            }
         }
-        try {
-            javaMailSender.send(mimeMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Thread.sleep(3000L);
-            send(topic, content,tryCount + 1);
-        }
-        return true;
     }
 
 
