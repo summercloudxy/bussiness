@@ -86,8 +86,6 @@ public class MercariPageController {
 
 
 
-
-
     public List<MercariSearchCondition> getMercariKeyWord(String keyword,String brand){
         LambdaQueryWrapper<MercariSearchCondition> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.like(StringUtils.isNotBlank(keyword),MercariSearchCondition::getDescription,keyword);

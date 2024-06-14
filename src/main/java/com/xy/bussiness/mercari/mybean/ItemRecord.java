@@ -24,5 +24,6 @@ public class ItemRecord {
     private Date updateDate;
     private String soldStatus;
     private String sellerId;
+    private Date recordCreateDate;
 
 }

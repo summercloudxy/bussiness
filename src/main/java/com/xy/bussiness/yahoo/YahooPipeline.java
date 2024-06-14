@@ -147,7 +147,7 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://yahoo.jpshuntong.com/Index/goodsitem.html?goodsid=");
+            stringBuilder.append("<a href='http://yahoojp.jpshuntong.com/jp/auction/");
             stringBuilder.append(record.getAuctionId());
             stringBuilder.append("'>点击购买</a>");
             stringBuilder.append("</div>");

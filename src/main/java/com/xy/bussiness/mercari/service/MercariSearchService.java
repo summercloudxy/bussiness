@@ -132,6 +132,8 @@ public class MercariSearchService {
             itemRecord.setCreateDate(new Date(Long.parseLong(item.getCreated()) * 1000));
             itemRecord.setUpdateDate(new Date(Long.parseLong(item.getUpdated()) * 1000));
             itemRecord.setSellerId(item.getSellerId());
+
+            itemRecord.setRecordCreateDate(new Date());
             if (StringUtils.isNotBlank(item.getItemConditionId())) {
                 itemRecord.setItemConditionId(Integer.valueOf(item.getItemConditionId()));
             }
