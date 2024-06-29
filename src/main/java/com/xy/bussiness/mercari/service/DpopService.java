@@ -8,8 +8,8 @@ import org.checkerframework.checker.units.qual.C;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v119.network.Network;
-import org.openqa.selenium.devtools.v119.network.model.Request;
+import org.openqa.selenium.devtools.v126.network.Network;
+import org.openqa.selenium.devtools.v126.network.model.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -93,6 +93,7 @@ public class DpopService {
         });
 
         chromeDriver.get("https://jp.mercari.com/search?keyword=chanel&order=desc&sort=created_time&t3_category_id=789%2C792&category_id=789%2C792&t1_category_id=6&t2_category_id=88&item_condition_id=1%2C2&status=on_sale");
+
         while (!dpopUpdated) {
             Thread.sleep(2000);
         }
