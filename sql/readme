@@ -1,17 +1,19 @@
 参考文档：https://medium.com/@ohanaadi/chrome-devtools-and-selenium-4-eadab5d755b7
 chromedriver 下载
 升级chrome版本时，修改driver版本、pom selenium版本
-https://registry.npmmirror.com/binary.html?path=chromedriver/
-
-<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-devtools-v110 -->
-<dependency>
-    <groupId>org.seleniumhq.selenium</groupId>
-    <artifactId>selenium-devtools-v110</artifactId>
-    <version>4.8.1</version>
-</dependency>
 
 https://googlechromelabs.github.io/chrome-for-testing/
 chrome.exe和chromedriver.exe放在同一目录下
+
+更新selenium-java版本，保证selenium-java里面依赖的selenium-devtools-v1xx 和Chromedriver一致
+
+仅此一个依赖足够，但是其他依赖比如selenium-remote会有版本冲突，所以可以把selenium-java里面引用的依赖都放到pom中，用来显式固定版本
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.22.0</version>
+        </dependency>
+
 
 注意在这里修改properties的绝对路径
 com.xy.bussiness.mercari.MercariCrawler.setDpop
