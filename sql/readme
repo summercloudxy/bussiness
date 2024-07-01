@@ -2,18 +2,19 @@
 chromedriver 下载
 升级chrome版本时，修改driver版本、pom selenium版本
 
+1.下载chromedriver，将chrome.exe和chromedriver.exe放在同一目录下
 https://googlechromelabs.github.io/chrome-for-testing/
-chrome.exe和chromedriver.exe放在同一目录下
 
-更新selenium-java版本，保证selenium-java里面依赖的selenium-devtools-v1xx 和Chromedriver一致
+2.更新selenium-java版本，保证selenium-java里面依赖的selenium-devtools-v1xx 和Chromedriver一致
+修改Pom中的
+<selenium.version>4.22.0</selenium.version>
 
-仅此一个依赖足够，但是其他依赖比如selenium-remote会有版本冲突，所以可以把selenium-java里面引用的依赖都放到pom中，用来显式固定版本
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>4.22.0</version>
-        </dependency>
+仅此一个依赖足够，但是其他依赖比如selenium-remote会有版本冲突，所以可以把selenium-java里面引用的依赖都放到pom中，用来显式固定版本，使相关的selenium依赖版本都与selenium-java版本一致。
+<dependency>
+     <groupId>org.seleniumhq.selenium</groupId>
+     <artifactId>selenium-java</artifactId>
+     <version>4.22.0</version>
+</dependency>
 
-
-注意在这里修改properties的绝对路径
+3.注意在这里修改properties的绝对路径
 com.xy.bussiness.mercari.MercariCrawler.setDpop
