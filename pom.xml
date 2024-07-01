@@ -15,7 +15,7 @@
     <description>bussiness</description>
     <properties>
         <java.version>1.8</java.version>
-        <selenium.version>4.22.0</selenium.version>
+        <selenium.version>4.16.0</selenium.version>
     </properties>
     <dependencies>
         <dependency>
