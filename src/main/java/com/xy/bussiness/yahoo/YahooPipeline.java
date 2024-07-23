@@ -63,6 +63,7 @@ public class YahooPipeline implements Pipeline {
             Map<String, YahooItemRecord> oldItemMap = oldItemList.stream().collect(Collectors.toMap(YahooItemRecord::getAuctionId, Function.identity(), (a, b) -> a));
             List<YahooItemRecord> newItemList = new ArrayList<>();
             List<YahooItemRecord> priceItemList = new ArrayList<>();
+            List<YahooItemRecord> excludeItemList = new ArrayList<>();
             for (YahooItemRecord item : items) {
                 YahooItemRecord oldItem = oldItemMap.get(item.getAuctionId());
                 item.setSearchConditionId(Integer.valueOf(searchConditionId));
@@ -70,16 +71,20 @@ public class YahooPipeline implements Pipeline {
                 if (oldItem == null) {
                     item.setCreateDate(new Date());
                     boolean needExclude = false;
-                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())){
+                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())) {
                         String[] excludeKeywordList = searchCondition.getExcludeKeyword().split(",");
-                        for (String exclude : excludeKeywordList){
-                            if (item.getTitle().contains(exclude)){
+                        for (String exclude : excludeKeywordList) {
+                            if (item.getTitle().contains(exclude)) {
                                 needExclude = true;
                             }
                         }
                     }
-                    if (needExclude) continue;
-                    newItemList.add(item);
+                    item.setExclude(needExclude);
+                    if (needExclude) {
+                        excludeItemList.add(item);
+                    } else {
+                        newItemList.add(item);
+                    }
                 } else {
                     if (oldItem.getInterest() && oldItem.getAuctionPrice() > item.getAuctionPrice()) {
                         item.setOriginPrice(oldItem.getOriginPrice());
@@ -105,6 +110,9 @@ public class YahooPipeline implements Pipeline {
                     yahooItemRecordService.updateBatchById(priceItemList);
                 }
             }
+            if (!CollectionUtils.isEmpty(excludeItemList)) {
+                yahooItemRecordService.saveBatch(excludeItemList);
+            }
             yahooService.addTask(split[0], String.valueOf(Integer.valueOf(split[1]) + 1));
         } catch (Exception e) {
             log.error("雅虎：处理[{}]第[{}]页的数据失败", searchCondition.getDescription(), pageNum, e);
@@ -115,11 +123,11 @@ public class YahooPipeline implements Pipeline {
 
     public boolean sendNewMail(YahooSearchCondition searchCondition, List<YahooItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        return mailSender.send("雅虎:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems),0);
+        return mailSender.send("雅虎:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems), 0);
     }
 
     public boolean sendPriceMail(YahooSearchCondition searchCondition, List<YahooItemRecord> priceItems) throws Exception {
-        return mailSender.send("雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems),0);
+        return mailSender.send("雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems), 0);
     }
 
 

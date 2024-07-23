@@ -122,6 +122,7 @@ public class MercariSearchService {
         List<ItemRecord> currentAllItems = new ArrayList<>();
         List<ItemRecord> priceItems = new ArrayList<>();
         List<ItemRecord> noticeNewItems = new ArrayList<>();
+        List<ItemRecord> excludeNewItems = new ArrayList<>();
         for (ItemsItem item : itemList) {
             String mercariItemId = item.getId();
             ItemRecord oldItem = oldItems.get(mercariItemId);
@@ -144,10 +145,21 @@ public class MercariSearchService {
                 newItems.add(itemRecord);
                 ItemRecord itemRecordByMercariId = mercariMapper.getItemRecordByMercariId(mercariItemId);
                 if (itemRecordByMercariId == null) {
-                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword()) && itemRecord.getMercariItemTitle().contains(searchCondition.getExcludeKeyword())) {
-                        continue;
+                    boolean needExclude = false;
+                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())) {
+                        String[] excludeKeywordList = searchCondition.getExcludeKeyword().split(",");
+                        for (String exclude : excludeKeywordList) {
+                            if (item.getName().contains(exclude)) {
+                                needExclude = true;
+                            }
+                        }
                     }
-                    noticeNewItems.add(itemRecord);
+                    itemRecord.setExclude(needExclude);
+                    if (needExclude){
+                        excludeNewItems.add(itemRecord);
+                    }else {
+                        noticeNewItems.add(itemRecord);
+                    }
                 }
             } else {
                 itemRecord.setInterest(oldItem.isInterest());
@@ -180,6 +192,10 @@ public class MercariSearchService {
                     itemRecordService.update(updateWrapper);
                 }
             }
+        }
+        // 不关心的商品上新，直接保存
+        if (!CollectionUtils.isEmpty(excludeNewItems)){
+            itemRecordService.saveBatch(excludeNewItems);
         }
     }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import sun.jvm.hotspot.debugger.SymbolLookup;
 
 import java.util.Date;
 
@@ -25,5 +26,5 @@ public class ItemRecord {
     private String soldStatus;
     private String sellerId;
     private Date recordCreateDate;
-
+    private boolean exclude = false;
 }

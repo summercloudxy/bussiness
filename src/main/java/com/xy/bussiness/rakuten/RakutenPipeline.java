@@ -63,6 +63,7 @@ public class RakutenPipeline implements Pipeline {
             List<RakutenItemRecord> newItemList = new ArrayList<>();
             List<RakutenItemRecord> priceItemList = new ArrayList<>();
             List<RakutenItemRecord> noticeNewItems = new ArrayList<>();
+            List<RakutenItemRecord> excludeNewItems = new ArrayList<>();
             for (RakutenItemRecord item : items) {
                 RakutenItemRecord oldItem = oldItemMap.get(item.getItemId());
                 item.setSearchConditionId(Integer.valueOf(searchConditionId));
@@ -76,16 +77,20 @@ public class RakutenPipeline implements Pipeline {
                     List<RakutenItemRecord> itemRecordByItemId = rakutenItemRecordService.list(wrappers);
                     if (CollectionUtils.isEmpty(itemRecordByItemId)) {
                         boolean needExclude = false;
-                        if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())){
+                        if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())) {
                             String[] excludeKeywordList = searchCondition.getExcludeKeyword().split(",");
-                            for (String exclude : excludeKeywordList){
-                                if (item.getTitle().contains(exclude)){
+                            for (String exclude : excludeKeywordList) {
+                                if (item.getTitle().contains(exclude)) {
                                     needExclude = true;
                                 }
                             }
                         }
-                        if (needExclude) continue;
-                        noticeNewItems.add(item);
+                        item.setExclude(needExclude);
+                        if (needExclude) {
+                            excludeNewItems.add(item);
+                        } else {
+                            noticeNewItems.add(item);
+                        }
                     }
                 } else {
                     if (oldItem.isInterest() && oldItem.getCurrentPrice() > item.getCurrentPrice()) {
@@ -119,6 +124,9 @@ public class RakutenPipeline implements Pipeline {
                     }
                 }
             }
+            if (!CollectionUtils.isEmpty(excludeNewItems)) {
+                rakutenItemRecordService.saveBatch(excludeNewItems);
+            }
             Integer currentPageNum = Integer.valueOf(split[1]);
 
             if (currentPageNum < searchCondition.getMaxPageNum()) {
@@ -133,11 +141,11 @@ public class RakutenPipeline implements Pipeline {
 
     public boolean sendNewMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        return mailSender.send("乐天:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems),0);
+        return mailSender.send("乐天:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems), 0);
     }
 
     public boolean sendPriceMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> priceItems) throws Exception {
-        return mailSender.send("乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems),0);
+        return mailSender.send("乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems), 0);
     }
 
 

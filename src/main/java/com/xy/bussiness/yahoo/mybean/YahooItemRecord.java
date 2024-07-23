@@ -26,4 +26,6 @@ public class YahooItemRecord {
     private Boolean isPaypal = false;
     private Boolean isNew = false;
 
+    private boolean exclude;
+
 }

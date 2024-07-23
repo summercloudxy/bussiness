@@ -22,5 +22,6 @@ public class RakutenItemRecord {
     private Date updateDate;
     private String imageUrl;
     private String itemUrl;
+    private boolean exclude;
 
 }

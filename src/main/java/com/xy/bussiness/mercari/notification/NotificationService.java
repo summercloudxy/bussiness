@@ -28,6 +28,7 @@ public class NotificationService {
 
     public boolean sendNew(MercariSearchCondition searchCondition, List<ItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
+
 //        executorService.execute(()->windowsNotification.display("煤炉:" + searchCondition.getBrand() + description + "上新啦",getNewWindowsContent(newItems)));
        return mailSender.send("煤炉:" + searchCondition.getBrand() + description + "上新啦", getNewMailContent(newItems),0);
 
