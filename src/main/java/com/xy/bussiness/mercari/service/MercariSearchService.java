@@ -144,6 +144,9 @@ public class MercariSearchService {
                 newItems.add(itemRecord);
                 ItemRecord itemRecordByMercariId = mercariMapper.getItemRecordByMercariId(mercariItemId);
                 if (itemRecordByMercariId == null) {
+                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword()) && itemRecord.getMercariItemTitle().contains(searchCondition.getExcludeKeyword())) {
+                        continue;
+                    }
                     noticeNewItems.add(itemRecord);
                 }
             } else {

@@ -28,4 +28,5 @@ public class MercariSearchCondition {
     private List<String> conditionList = new ArrayList<>();
     @TableField(exist = false)
     private List<String> categoryList = new ArrayList<>();
+    private String excludeKeyword;
 }
