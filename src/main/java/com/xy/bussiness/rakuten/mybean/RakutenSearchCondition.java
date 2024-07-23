@@ -22,4 +22,5 @@ public class RakutenSearchCondition {
     private String searchUrl;
     private Integer maxPageNum;
     private String status;
+    private String excludeKeyword;
 }

@@ -2,6 +2,7 @@ package com.xy.bussiness.rakuten;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.notification.mail.MyMailSender;
@@ -74,6 +75,16 @@ public class RakutenPipeline implements Pipeline {
                     wrappers.eq(RakutenItemRecord::getItemId, item.getItemId());
                     List<RakutenItemRecord> itemRecordByItemId = rakutenItemRecordService.list(wrappers);
                     if (CollectionUtils.isEmpty(itemRecordByItemId)) {
+                        boolean needExclude = false;
+                        if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())){
+                            String[] excludeKeywordList = searchCondition.getExcludeKeyword().split(",");
+                            for (String exclude : excludeKeywordList){
+                                if (item.getTitle().contains(exclude)){
+                                    needExclude = true;
+                                }
+                            }
+                        }
+                        if (needExclude) continue;
                         noticeNewItems.add(item);
                     }
                 } else {

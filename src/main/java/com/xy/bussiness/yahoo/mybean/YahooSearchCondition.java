@@ -21,5 +21,6 @@ public class YahooSearchCondition {
     private boolean enable;
     private String searchUrl;
     private Integer pageSize;
+    private String excludeKeyword;
 
 }

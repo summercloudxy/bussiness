@@ -1,6 +1,7 @@
 package com.xy.bussiness.yahoo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.notification.mail.MyMailSender;
 import com.xy.bussiness.yahoo.mybatisservice.YahooItemRecordService;
@@ -68,6 +69,16 @@ public class YahooPipeline implements Pipeline {
                 item.setInterest(false);
                 if (oldItem == null) {
                     item.setCreateDate(new Date());
+                    boolean needExclude = false;
+                    if (StringUtils.isNotBlank(searchCondition.getExcludeKeyword())){
+                        String[] excludeKeywordList = searchCondition.getExcludeKeyword().split(",");
+                        for (String exclude : excludeKeywordList){
+                            if (item.getTitle().contains(exclude)){
+                                needExclude = true;
+                            }
+                        }
+                    }
+                    if (needExclude) continue;
                     newItemList.add(item);
                 } else {
                     if (oldItem.getInterest() && oldItem.getAuctionPrice() > item.getAuctionPrice()) {

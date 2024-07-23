@@ -42,71 +42,75 @@ public class MercariRestController {
 
 
     @GetMapping("/mercari/searchCondition")
-    public List<MercariSearchCondition>  getSearchConditionList(String brand){
-        if (StringUtils.isBlank(brand) || "全部".equals(brand)){
+    public List<MercariSearchCondition> getSearchConditionList(String brand) {
+        if (StringUtils.isBlank(brand) || "全部".equals(brand)) {
             return conditionDetail(mercariSearchConditionService.list());
         }
         LambdaQueryWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(MercariSearchCondition::getBrand,brand);
+        wrapper.eq(MercariSearchCondition::getBrand, brand);
         List<MercariSearchCondition> list = mercariSearchConditionService.list(wrapper);
         return conditionDetail(list);
     }
 
 
     @GetMapping("/mercari/item/interest")
-    public List<ItemRecord>  getSaleInterestItem(String brand,String conditionId,Boolean saleStatus){
+    public List<ItemRecord> getSaleInterestItem(String brand, String conditionId, Boolean saleStatus) {
         List<ItemRecord> allItem = new ArrayList<>();
-        if (StringUtils.isNotBlank(brand) && !"empty".equals(brand)){
+        if (StringUtils.isNotBlank(brand) && !"empty".equals(brand)) {
             allItem = getBrandInterestItem(brand);
         }
-        if (StringUtils.isNotBlank(conditionId) && !"empty".equals(conditionId)){
+        if (StringUtils.isNotBlank(conditionId) && !"empty".equals(conditionId)) {
             allItem = getConditionInterestItem(Integer.valueOf(conditionId));
         }
-        if (saleStatus){
+        if (saleStatus) {
             allItem = allItem.stream().filter(t -> "on_sale".equals(t.getSoldStatus()) || t.getSoldStatus() == null).collect(Collectors.toList());
         }
         return allItem;
     }
 
 
-
-    public List<ItemRecord> getBrandInterestItem(String brand){
+    public List<ItemRecord> getBrandInterestItem(String brand) {
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ItemRecord::isInterest,true);
+        queryWrapper.eq(ItemRecord::isInterest, true);
         LambdaQueryWrapper<MercariSearchCondition> searchConditionLambdaQueryWrapper = Wrappers.lambdaQuery();
-        searchConditionLambdaQueryWrapper.eq(MercariSearchCondition::getBrand,brand);
+        searchConditionLambdaQueryWrapper.eq(MercariSearchCondition::getBrand, brand);
         List<MercariSearchCondition> searchConditionList = mercariSearchConditionService.list(searchConditionLambdaQueryWrapper);
         List<Integer> searchConditionIds = searchConditionList.stream().map(MercariSearchCondition::getId).collect(Collectors.toList());
-        queryWrapper.in(ItemRecord::getSearchConditionId,searchConditionIds);
+        queryWrapper.in(ItemRecord::getSearchConditionId, searchConditionIds);
         List<ItemRecord> list = itemRecordService.list(queryWrapper);
-        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
+        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
         return new ArrayList<>(collect.values());
     }
 
 
-    public List<ItemRecord> getConditionInterestItem(Integer conditionId){
+    public List<ItemRecord> getConditionInterestItem(Integer conditionId) {
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ItemRecord::isInterest,true);
+        queryWrapper.eq(ItemRecord::isInterest, true);
         if (conditionId != null && conditionId != -1) {
             queryWrapper.eq(ItemRecord::getSearchConditionId, conditionId);
         }
         List<ItemRecord> list = itemRecordService.list(queryWrapper);
-        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(),(a,b)->a));
+        Map<String, ItemRecord> collect = list.stream().collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
         return new ArrayList<>(collect.values());
     }
 
-    public List<MercariSearchCondition>  conditionDetail(List<MercariSearchCondition> conditionList){
-        if (CollectionUtils.isNotEmpty(conditionList)){
-            conditionList.forEach(t->{
+    public List<MercariSearchCondition> conditionDetail(List<MercariSearchCondition> conditionList) {
+        if (CollectionUtils.isNotEmpty(conditionList)) {
+            conditionList.forEach(t -> {
                 String condition = t.getItemCondition();
                 if (StringUtils.isNotBlank(condition)) {
                     String[] conditionArray = condition.split(",");
                     t.setConditionList(Arrays.asList(conditionArray));
                 }
                 String searchCategory = t.getSearchCategory();
-                if (StringUtils.isNotBlank(searchCategory)){
+                if (StringUtils.isNotBlank(searchCategory)) {
                     String[] categoryArray = searchCategory.split(",");
                     t.setCategoryList(Arrays.asList(categoryArray));
+                }
+                String excludeKeyword = t.getExcludeKeyword();
+                if (StringUtils.isNotBlank(excludeKeyword)) {
+                    String[] excludeKeywordArray = excludeKeyword.split(",");
+                    t.setExcludeKeywordList(Arrays.asList(excludeKeywordArray));
                 }
             });
         }
@@ -120,11 +124,11 @@ public class MercariRestController {
     public void updateItemSoldStatus() throws InterruptedException {
         dpopService.updateItemDpop(null);
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ItemRecord::isInterest,true);
+        queryWrapper.eq(ItemRecord::isInterest, true);
 
         List<ItemRecord> list = itemRecordService.list(queryWrapper);
-        Map<String, ItemRecord> collect = list.stream().filter(t-> t.getSoldStatus() == null || "on_sale".equals(t.getSoldStatus())).collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
-        for (ItemRecord item : collect.values()){
+        Map<String, ItemRecord> collect = list.stream().filter(t -> t.getSoldStatus() == null || "on_sale".equals(t.getSoldStatus())).collect(Collectors.toMap(ItemRecord::getMercariItemId, Function.identity(), (a, b) -> a));
+        for (ItemRecord item : collect.values()) {
             try {
                 ItemData itemDetail = mercariCrawler.getItemDetail(item.getMercariItemId());
                 String status = itemDetail.getStatus();
@@ -134,7 +138,7 @@ public class MercariRestController {
                     updateWrapper.eq(ItemRecord::getMercariItemId, item.getMercariItemId());
                     itemRecordService.update(updateWrapper);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
         }
@@ -144,20 +148,21 @@ public class MercariRestController {
 
     /**
      * 清理已售出产品
+     *
      * @param conditionId
      */
     @GetMapping("/mercari/clean/item")
-    public void cleanItems(String conditionId){
+    public void cleanItems(String conditionId) {
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.ne(ItemRecord::getSoldStatus,null).ne(ItemRecord::getSoldStatus,"on_sale");
-        queryWrapper.eq(ItemRecord::isInterest,false);
-        queryWrapper.eq(StringUtils.isNotBlank(conditionId),ItemRecord::getSearchConditionId,conditionId);
+        queryWrapper.ne(ItemRecord::getSoldStatus, null).ne(ItemRecord::getSoldStatus, "on_sale");
+        queryWrapper.eq(ItemRecord::isInterest, false);
+        queryWrapper.eq(StringUtils.isNotBlank(conditionId), ItemRecord::getSearchConditionId, conditionId);
         itemRecordService.remove(queryWrapper);
     }
 
 
     @GetMapping("/mercari/item/detail")
-    public ItemData getItemDetail(String itemId){
+    public ItemData getItemDetail(String itemId) {
         ItemData itemDetail = mercariCrawler.getItemDetail(itemId);
         return itemDetail;
     }
@@ -169,8 +174,8 @@ public class MercariRestController {
 
 
     @GetMapping("/mercari/dpop")
-    public String getDpop(){
-       return mercariCrawler.getDpop();
+    public String getDpop() {
+        return mercariCrawler.getDpop();
     }
 
 
@@ -180,50 +185,50 @@ public class MercariRestController {
     }
 
     @GetMapping("/mercari/updateCondition")
-    public void updateCondition(String id,String condition,Boolean enable){
+    public void updateCondition(String id, String condition, Boolean enable) {
         MercariSearchCondition searchCondition = mercariSearchConditionService.getById(id);
         Set<String> conditionSet = new HashSet<>();
-        if (StringUtils.isNotBlank(searchCondition.getItemCondition())){
+        if (StringUtils.isNotBlank(searchCondition.getItemCondition())) {
             String[] conditionList = searchCondition.getItemCondition().split(",");
             conditionSet = new HashSet<>(Arrays.asList(conditionList));
         }
-        if (enable){
+        if (enable) {
             conditionSet.add(condition);
-        }else {
+        } else {
             conditionSet.remove(condition);
         }
-        String updateCondition ="";
-        if (CollectionUtils.isNotEmpty(conditionSet)){
+        String updateCondition = "";
+        if (CollectionUtils.isNotEmpty(conditionSet)) {
             updateCondition = org.apache.commons.lang3.StringUtils.join(conditionSet, ",");
 
         }
         LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
-        wrapper.set(MercariSearchCondition::getItemCondition,updateCondition);
-        wrapper.eq(MercariSearchCondition::getId,id);
+        wrapper.set(MercariSearchCondition::getItemCondition, updateCondition);
+        wrapper.eq(MercariSearchCondition::getId, id);
         mercariSearchConditionService.update(wrapper);
     }
 
     @GetMapping("/mercari/updateCategory")
-    public void updateCategory(String id,String category,Boolean enable){
+    public void updateCategory(String id, String category, Boolean enable) {
         MercariSearchCondition searchCondition = mercariSearchConditionService.getById(id);
         Set<String> categorySet = new HashSet<>();
-        if (StringUtils.isNotBlank(searchCondition.getSearchCategory())){
+        if (StringUtils.isNotBlank(searchCondition.getSearchCategory())) {
             String[] categoryList = searchCondition.getSearchCategory().split(",");
             categorySet = new HashSet<>(Arrays.asList(categoryList));
         }
-        if (enable){
+        if (enable) {
             categorySet.add(category);
-        }else {
+        } else {
             categorySet.remove(category);
         }
-        String updateCondition ="";
-        if (CollectionUtils.isNotEmpty(categorySet)){
+        String updateCondition = "";
+        if (CollectionUtils.isNotEmpty(categorySet)) {
             updateCondition = org.apache.commons.lang3.StringUtils.join(categorySet, ",");
 
         }
         LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
-        wrapper.set(MercariSearchCondition::getSearchCategory,updateCondition);
-        wrapper.eq(MercariSearchCondition::getId,id);
+        wrapper.set(MercariSearchCondition::getSearchCategory, updateCondition);
+        wrapper.eq(MercariSearchCondition::getId, id);
         mercariSearchConditionService.update(wrapper);
     }
 
