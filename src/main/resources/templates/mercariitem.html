@@ -31,8 +31,8 @@
                             "</td><td><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/" + itemList[i].mercariItemId+ "_1.jpg'>" +
                             "</td><td>" + itemList[i].originPrice +
                             "</td><td>" + itemList[i].currentPrice +
-                            "</td><td><a className='btn btn-sm btn-primary' href='@{https://mercari.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>手机</a>" +
-                            "<a className='btn btn-sm btn-primary' href='@{https://mercari.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>电脑</a>" +
+                            "</td><td><a className='btn btn-sm btn-primary' href='@{https://meilu.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>手机</a>" +
+                            "<a className='btn btn-sm btn-primary' href='@{https://meilu.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>电脑</a>" +
 
                             "</td><td><a className='btn btn-sm btn-primary' href='@{/mercari/setInterest?interest=0&itemId="+itemList[i].mercariItemId +
                             " target='_blank'>不再关注</a>"+
@@ -85,9 +85,9 @@
             <td th:text="${item.originPrice}"></td>
             <td th:text="${item.currentPrice}"></td>
             <td>
-                <a class="btn btn-sm btn-primary" th:href="@{https://mercari.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>手机</a>
+                <a class="btn btn-sm btn-primary" th:href="@{https://meilu.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>手机</a>
 
-                <a class="btn btn-sm btn-primary" th:href="@{https://mercari.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>电脑</a>
+                <a class="btn btn-sm btn-primary" th:href="@{https://meilu.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>电脑</a>
             </td>
             <td>
                 <a class="btn btn-sm btn-primary" th:href="@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}"  target='_blank'>不再关注</a>

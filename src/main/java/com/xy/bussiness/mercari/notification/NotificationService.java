@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.xy.bussiness.UrlConstants.SHUNTONG_MEILU_URL;
+
 @Service
 public class NotificationService {
     @Autowired
@@ -79,16 +81,18 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
+            stringBuilder.append("<a href='");
+            stringBuilder.append(SHUNTONG_MEILU_URL);
             stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>电脑端购买</a>");
-            stringBuilder.append("</div>");
+//            stringBuilder.append("<div>");
+//            stringBuilder.append("<a href='");
+//            stringBuilder.append(record.getMercariItemId());
+//            stringBuilder.append(SHUNTONG_MEILU_URL);
+//            stringBuilder.append("'>电脑端购买</a>");
+//            stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
             stringBuilder.append("<a href='https://" + notifyHost + "/mercari/setInterest?interest=1&itemId=");
@@ -134,16 +138,16 @@ public class NotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
+            stringBuilder.append("<a href='https://meilu.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://mercari.jpshuntong.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>电脑端购买</a>");
-            stringBuilder.append("</div>");
+//            stringBuilder.append("<div>");
+//            stringBuilder.append("<a href='https://meilu.jpshuntong.com/item/");
+//            stringBuilder.append(record.getMercariItemId());
+//            stringBuilder.append("'>电脑端购买</a>");
+//            stringBuilder.append("</div>");
 
 
             stringBuilder.append("<div>");

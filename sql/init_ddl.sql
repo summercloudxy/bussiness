@@ -1,186 +1,188 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : localhost(111111)
- Source Server Type    : MySQL
- Source Server Version : 80035
- Source Host           : localhost:3306
- Source Schema         : mercari
-
- Target Server Type    : MySQL
- Target Server Version : 80035
- File Encoding         : 65001
-
- Date: 01/07/2024 14:49:25
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for mercari_item_record
+-- Records of rakuten_search_condition
 -- ----------------------------
-DROP TABLE IF EXISTS `mercari_item_record`;
-CREATE TABLE `mercari_item_record`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `search_condition_id` int NULL DEFAULT NULL,
-  `mercari_item_id` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `mercari_item_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `interest` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
-  `origin_price` int NULL DEFAULT NULL,
-  `current_price` int NULL DEFAULT NULL,
-  `item_condition_id` tinyint NULL DEFAULT NULL,
-  `create_date` datetime NULL DEFAULT NULL,
-  `update_date` datetime NULL DEFAULT NULL,
-  `sold_status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `seller_id` int NULL DEFAULT NULL,
-  `record_create_date` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `search_condition_id`(`search_condition_id` ASC) USING BTREE,
-  INDEX `mercari_item_id`(`mercari_item_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2115282516 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+INSERT INTO `rakuten_search_condition` VALUES (158, 'chanel', '香奈儿', '424', NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 3, 'new', NULL);
+INSERT INTO `rakuten_search_condition` VALUES (159, 'dior', '迪奥', '424', NULL, NULL, 180, NULL, NULL, 1, 'dior', NULL, 3, 'new', NULL);
+INSERT INTO `rakuten_search_condition` VALUES (160, 'マルセル ワンダース', '黛珂蜜粉', '424', NULL, NULL, 240, NULL, NULL, 1, 'decorte', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (161, 'ミラノコレクション', '嘉娜宝', NULL, NULL, 0000001000, 240, NULL, NULL, 1, 'kanebo', NULL, 2, NULL, 'レフィル,パフ,詰め替え,オードパルファム');
+INSERT INTO `rakuten_search_condition` VALUES (162, 'ランコム スパークリングシェルブ', '天使', NULL, NULL, NULL, 240, NULL, NULL, 1, 'lancome', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (163, '資生堂 七色粉白粉', '七色粉白粉', NULL, NULL, NULL, 240, NULL, NULL, 0, '资生堂', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (164, 'ラデュレ', '拉杜丽', '10004', NULL, NULL, 180, NULL, NULL, 0, 'laduree', NULL, 3, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (165, ' スノービューティー ', '雪花粉饼', NULL, NULL, 0000001000, 240, NULL, NULL, 1, 'maquillage', NULL, 1, NULL, 'レフィル,パフ,詰め替え');
+INSERT INTO `rakuten_search_condition` VALUES (166, 'ルート デ ザンド', '孟买', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (167, 'トゥロワ リンニュ ドゥ シャネル', '黑眉粉', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (168, 'シャネル ロンドンマッドネス', '疯狂伦敦', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (169, 'プードゥルインプレッションドゥシャネル', 'Poudre Impressions ', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (170, 'ムーシュドゥボーテ', 'mouche', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (171, 'ルミエールダルティフィス', '钱币', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (172, 'シャネル レティサージュ ラメ', '鸟笼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (173, 'プードゥル ティセ フェイスパウダー', 'tissee', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (174, 'ソーホー ドゥ シャネル', 'soho', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (175, 'アルビオン レガァーメ', '宝格丽蜜粉', NULL, NULL, NULL, 240, NULL, NULL, 1, 'Albion', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (176, 'YSL ジュエルリップスティック', '宝石口红', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (177, 'ヴィンテージ イブサンローラン ジュエル リップステック', '宝石口红', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (178, 'YSL ジュエルパウダー', '宝石粉饼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (179, 'サンローランジュエルコンパクト', '宝石粉饼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (180, 'バタフライフィーバー', '蝴蝶', NULL, NULL, NULL, 240, NULL, NULL, 1, 'lancome', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (181, 'メゾン ランコム', 'maison', NULL, NULL, NULL, 240, NULL, NULL, 1, 'lancome', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (182, '資生堂 プードル コーディアル', '陶瓷蜜粉', NULL, NULL, NULL, 240, NULL, NULL, 0, '资生堂', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (183, 'ラ・プードル ルイスロント', '花朵粉饼', NULL, NULL, NULL, 240, NULL, NULL, 0, '资生堂', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (184, 'イヴサンローラン ユアシークレット ラグジュアリー', '手链唇膏', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (185, 'ディオール ブラッシュハーモニー', 'harmony', NULL, NULL, NULL, 240, NULL, NULL, 1, 'dior', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (186, 'オンブル ラメ ドゥ シャネル', '麦穗', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (187, ' エレガンス ファンタムアイズ', '幻影眼影', '424', NULL, NULL, 240, NULL, NULL, 1, 'elegance', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (188, 'ディオール プリンセスリング', '戒指', NULL, NULL, NULL, 240, NULL, NULL, 1, 'dior', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (189, 'ゲラン ラディアント シャドウ', '眼影', NULL, NULL, NULL, 240, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (190, 'ナイトジュエルソリッドパフューム', 'night香膏', NULL, NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (191, 'ジルスチュアート クリスタルブルーム ソリッドパフューム', '花朵香膏', NULL, NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (192, 'dior ゴルメット', '手链唇膏', NULL, NULL, NULL, 240, NULL, NULL, 1, 'dior', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (193, 'パウダーセレブレーション', '粉末庆典', NULL, NULL, NULL, 240, NULL, NULL, 1, 'maquillage', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (195, 'カネボウ ベルミュージアム コンパクト', '93年悬赏品', NULL, NULL, NULL, 240, NULL, NULL, 0, 'kanebo', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (196, 'フェイスパレット モン パリフローラル', '蝴蝶结粉饼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (197, 'パレット パリジャンナイト ブラッシュ ルードバビロン', '爱心腮红', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (198, 'ジルスチュアート クリスマス', '圣诞', '10004', NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (199, 'ジルスチュアート ダイアモンドデュウ リップカラー', '戒指', '424', NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (200, 'インフィニティ ロイヤルフラワーコレクション', '皇家花卉', NULL, NULL, NULL, 240, NULL, NULL, 1, 'kose', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (201, 'インフィニティロイヤルパウダー', '皇家花卉', NULL, NULL, NULL, 240, NULL, NULL, 1, 'kose', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (202, '資生堂 バスパウダー', '沐浴粉', NULL, NULL, NULL, 120, NULL, NULL, 1, '资生堂', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (203, 'プレシャス キャラット', '钻石唇膏', '424', NULL, NULL, 240, NULL, NULL, 1, 'lancome', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (204, 'laduree  ポット', '盅', NULL, NULL, NULL, 60, NULL, NULL, 0, 'laduree', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (205, 'リミテッド エディション ローズ ラデュレ', '限量盅', NULL, NULL, NULL, 60, NULL, NULL, 1, 'laduree', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (206, 'ラデュレ ブラシホルダー', '刷架', NULL, NULL, NULL, 60, NULL, NULL, 0, 'laduree', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (207, 'ラデュレ ブラッシュホルダー', '刷架', NULL, NULL, NULL, 60, NULL, NULL, 0, 'laduree', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (208, 'エレガンス トレジュール リップカラー', '宝石唇彩', '424', NULL, NULL, 240, NULL, NULL, 1, 'elegance', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (209, 'chantecaille', '全部', NULL, NULL, NULL, 240, NULL, NULL, 1, 'chantecaille', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (212, 'ジバンシー プードル グロウ', '花朵粉饼', '424', NULL, NULL, 240, NULL, NULL, 1, 'givenchy', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (213, 'ミックスフェイスパウダーコンパクト', '圣诞粉饼', NULL, NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (214, 'メテオリット ヴォワイヤージュ', '陨石之旅', '424', NULL, NULL, 240, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (215, 'estee', '粉饼', '429', NULL, NULL, 240, NULL, NULL, 1, 'estee', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (216, 'GUERLAIN ブラッシュ エクラ', '齿轮腮红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (217, 'guerlain', '腮红', '440', NULL, NULL, 60, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (218, 'クルーエル ガーデニア パウダー', '花朵高光', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (219, 'ゲラン プードル ドゥ ソワ', '风车高光', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (220, 'メテオリット プードル ペルル', '珠珠高光', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (221, 'rmk  スプリングサーカス', '马戏团', NULL, NULL, NULL, 120, NULL, NULL, 0, 'rmk', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (222, 'RMK フェイスコレクティングカラー', '爱丽丝', NULL, NULL, NULL, 120, NULL, NULL, 0, 'rmk', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (223, 'ポール&ジョー ドラえもん', '哆啦A梦', NULL, NULL, NULL, 120, NULL, NULL, 0, 'paul', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (224, 'ポール&ジョー マット プレスト パウダー', '猫咪剪影粉饼', NULL, NULL, NULL, 120, NULL, NULL, 0, 'paul', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (226, 'paul', '粉饼', '429', NULL, NULL, 120, NULL, NULL, 1, 'paul', NULL, 1, 'new', NULL);
+INSERT INTO `rakuten_search_condition` VALUES (227, 'guerlain', '粉饼', '429', NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 1, 'new', NULL);
+INSERT INTO `rakuten_search_condition` VALUES (228, 'フェイスパレット モンパリクチュール', '蝴蝶结粉饼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (229, 'フラワーブーケ ハンドミラー', '花嫁镜', NULL, NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (230, 'プードルクルーズエキゾチック', '异国情调粉饼', NULL, NULL, NULL, 240, NULL, NULL, 1, 'givenchy', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (231, 'イヴ・サンローラン パレットブラン', '夹心粉饼', NULL, NULL, NULL, 240, NULL, NULL, 0, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (232, 'ジルスチュアート マイディアストロベリー', '2013圣诞', NULL, NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (233, 'ジルスチュアート フェアリーガーデン', '2011圣诞', NULL, NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (234, 'ジルスチュアート シークレットティーズ', '2010圣诞', NULL, NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (235, 'ジルスチュアート プリマグレース', '2014圣诞', NULL, NULL, NULL, 240, NULL, NULL, 0, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (236, 'スウィートネスコレクション', '2009圣诞', NULL, NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (237, 'ジルスチュアート クリスマスローズ', '2007圣诞', NULL, NULL, NULL, 240, NULL, NULL, 1, 'jill', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (238, 'レ ベージュ パレット ルガール インテンス', '五色眼影', NULL, NULL, NULL, 60, NULL, NULL, 0, 'chanel', NULL, 1, 'new', NULL);
+INSERT INTO `rakuten_search_condition` VALUES (239, 'パレット エスプリ クチュール', '人像眼影', NULL, NULL, NULL, 60, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (240, 'パレットYメール', '邮戳粉饼', NULL, NULL, NULL, 60, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (241, 'コンパクト パウダー ラブ コレクション', '爱心粉饼', NULL, NULL, NULL, 60, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (242, 'パレット フォーヴ', '豹纹眼影', NULL, NULL, NULL, 60, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (243, 'ツィード マドモアゼル', '黑色毛呢', '10004', NULL, NULL, 60, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (244, 'テイラー バー', 'tailleurbar', '10004', NULL, NULL, 60, NULL, NULL, 1, 'dior', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (245, 'ストリートアートアイシャドウ', 'art', NULL, NULL, NULL, 120, NULL, NULL, 1, 'mac', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (246, 'イン ザ アブストラクト ハイライター', 'art', NULL, NULL, NULL, 120, NULL, NULL, 1, 'mac', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (247, 'ハイライトパウダー マリーンライフ', '海马', NULL, NULL, NULL, 120, NULL, NULL, 1, 'mac', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (248, 'ルミエール ビザンチン ドゥ シャネル', '拜占庭', NULL, NULL, NULL, 30, NULL, NULL, 1, 'chanel', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (249, 'armani', '全部', '424', NULL, NULL, 480, NULL, NULL, 1, 'armani', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (250, 'mac', '粉饼', '429', NULL, NULL, 480, NULL, NULL, 1, 'mac', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (251, 'mac', '腮红', '440', NULL, NULL, 480, NULL, NULL, 1, 'mac', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (252, 'clarins', '全部', '424', NULL, NULL, 480, NULL, NULL, 1, 'clarins', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (253, 'givenchy', '粉饼', '429', NULL, NULL, 480, NULL, NULL, 1, 'clarins', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (254, 'ミラノコレクション エターナル', '女神限定', NULL, NULL, NULL, 480, NULL, NULL, 1, 'kanebo', NULL, 1, NULL, NULL);
+INSERT INTO `rakuten_search_condition` VALUES (255, 'ysl シルキーフィニッシュプレストパウダー', '宝石粉饼', NULL, NULL, NULL, 480, NULL, NULL, 1, 'ysl', NULL, 1, NULL, NULL);
+
 
 -- ----------------------------
--- Table structure for mercari_search_condition
+-- Records of yahoo_search_condition
 -- ----------------------------
-DROP TABLE IF EXISTS `mercari_search_condition`;
-CREATE TABLE `mercari_search_condition`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索关键字',
-  `en_keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '英文品名',
-  `description` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '描述',
-  `search_category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索类别，以逗号分隔，见CategoryEnum',
-  `price_max` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `price_min` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `duration` int NULL DEFAULT NULL COMMENT '间隔多长时间进行搜索，单位分钟',
-  `start_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `end_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `enable` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
-  `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '品牌',
-  `item_condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '状态，以逗号分隔，见ConditionEnum',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 420 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for mercari_seller_item_record
--- ----------------------------
-DROP TABLE IF EXISTS `mercari_seller_item_record`;
-CREATE TABLE `mercari_seller_item_record`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `mercari_item_id` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `mercari_item_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `interest` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
-  `origin_price` int NULL DEFAULT NULL,
-  `current_price` int NULL DEFAULT NULL,
-  `create_date` datetime NULL DEFAULT NULL,
-  `update_date` datetime NULL DEFAULT NULL,
-  `sold_status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `seller_id` int NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `mercari_item_id`(`mercari_item_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2115243554 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for mercari_seller_search_condition
--- ----------------------------
-DROP TABLE IF EXISTS `mercari_seller_search_condition`;
-CREATE TABLE `mercari_seller_search_condition`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '包含关键字',
-  `exclude_keyword` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '过滤关键字',
-  `seller_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '卖家id',
-  `root_category` int NULL DEFAULT 6 COMMENT '过滤类别',
-  `enable` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
-  `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '过滤品牌，以逗号分隔',
-  `item_condition` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '状态，以逗号分隔，见ConditionEnum',
-  `duration` int NULL DEFAULT 5,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 352 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for rakuten_item_record
--- ----------------------------
-DROP TABLE IF EXISTS `rakuten_item_record`;
-CREATE TABLE `rakuten_item_record`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `search_condition_id` int NULL DEFAULT NULL,
-  `item_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `interest` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
-  `origin_price` int NULL DEFAULT NULL,
-  `current_price` int NULL DEFAULT NULL,
-  `create_date` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `update_date` datetime NULL DEFAULT NULL,
-  `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `item_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `search_condition_id`(`search_condition_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 74453 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for rakuten_search_condition
--- ----------------------------
-DROP TABLE IF EXISTS `rakuten_search_condition`;
-CREATE TABLE `rakuten_search_condition`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索关键字',
-  `description` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '描述',
-  `search_category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索类别，以逗号分隔，见CategoryEnum',
-  `price_max` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `price_min` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `duration` int NULL DEFAULT NULL COMMENT '间隔多长时间进行搜索，单位分钟',
-  `start_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `end_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `enable` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
-  `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '品牌',
-  `search_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `max_page_num` int NULL DEFAULT 1,
-  `status` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 254 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for yahoo_item_record
--- ----------------------------
-DROP TABLE IF EXISTS `yahoo_item_record`;
-CREATE TABLE `yahoo_item_record`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `search_condition_id` int NULL DEFAULT NULL,
-  `auction_id` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `interest` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
-  `origin_price` int NULL DEFAULT NULL,
-  `auction_price` int NULL DEFAULT NULL,
-  `buy_now_price` int NULL DEFAULT NULL,
-  `create_date` datetime NULL DEFAULT NULL,
-  `update_date` datetime NULL DEFAULT NULL,
-  `image_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `end_time` datetime NULL DEFAULT NULL,
-  `is_paypal` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT 0,
-  `is_new` tinyint(1) UNSIGNED ZEROFILL NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `search_condition_id`(`search_condition_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2136408547 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for yahoo_search_condition
--- ----------------------------
-DROP TABLE IF EXISTS `yahoo_search_condition`;
-CREATE TABLE `yahoo_search_condition`  (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `keyword` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索关键字',
-  `description` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '描述',
-  `search_category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '搜索类别，以逗号分隔，见CategoryEnum',
-  `price_max` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `price_min` int(10) UNSIGNED ZEROFILL NULL DEFAULT NULL COMMENT '搜索价格区间',
-  `duration` int NULL DEFAULT NULL COMMENT '间隔多长时间进行搜索，单位分钟',
-  `start_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `end_time` datetime NULL DEFAULT NULL COMMENT '在哪个时间段进行搜索',
-  `enable` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
-  `brand` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '品牌',
-  `search_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  `page_size` int NULL DEFAULT 20,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 242 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
-
-SET FOREIGN_KEY_CHECKS = 1;
+INSERT INTO `yahoo_search_condition` VALUES (158, 'chanel', '香奈儿', '42180', NULL, NULL, 60, NULL, NULL, 1, 'chanel', NULL, 100, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (159, 'dior', '迪奥', '42180', NULL, NULL, 180, NULL, NULL, 1, 'dior', NULL, 100, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (160, 'マルセル ワンダース', '黛珂蜜粉', '42180', NULL, NULL, 240, NULL, NULL, 1, 'decorte', NULL, 50, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (161, 'ミラノコレクション', '嘉娜宝', NULL, NULL, NULL, 960, NULL, NULL, 1, 'kanebo', NULL, 100, 'レフィル,パフ,詰め替え,オードパルファム');
+INSERT INTO `yahoo_search_condition` VALUES (162, 'ランコム スパークリングシェルブ', '天使', NULL, NULL, NULL, 240, NULL, NULL, 1, 'lancome', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (163, '資生堂 七色粉白粉', '七色粉白粉', NULL, NULL, NULL, 240, NULL, NULL, 0, '资生堂', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (164, 'ラデュレ', '拉杜丽', '42180', NULL, NULL, 180, NULL, NULL, 0, 'laduree', NULL, 100, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (165, ' スノービューティー ', '雪花粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'maquillage', NULL, 50, 'レフィル,パフ,詰め替え');
+INSERT INTO `yahoo_search_condition` VALUES (166, 'ルート デ ザンド', '孟买', '42180', NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (167, 'トゥロワ リンニュ ドゥ シャネル', '黑眉粉', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (168, 'シャネル ロンドンマッドネス', '疯狂伦敦', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (169, 'プードゥルインプレッションドゥシャネル', 'Poudre Impressions ', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (170, 'ムーシュドゥボーテ', 'mouche', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (171, 'ルミエールダルティフィス', '钱币', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 2, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (172, 'シャネル レティサージュ ラメ', '鸟笼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (173, 'プードゥル ティセ フェイスパウダー', 'tissee', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (174, 'ソーホー ドゥ シャネル', 'soho', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (175, 'アルビオン レガァーメ', '宝格丽蜜粉', NULL, NULL, NULL, 120, NULL, NULL, 1, 'Albion', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (176, 'YSL ジュエルリップスティック', '宝石口红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (177, 'ヴィンテージ イブサンローラン ジュエル リップステック', '宝石口红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (178, 'YSL ジュエルパウダー', '宝石粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (179, 'サンローランジュエルコンパクト', '宝石粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (180, 'バタフライフィーバー', '蝴蝶', NULL, NULL, NULL, 120, NULL, NULL, 1, 'lancome', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (181, 'メゾン ランコム', 'maison', NULL, NULL, NULL, 120, NULL, NULL, 1, 'lancome', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (182, '資生堂 プードル コーディアル', '陶瓷蜜粉', NULL, NULL, NULL, 120, NULL, NULL, 0, '资生堂', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (183, 'ラ・プードル ルイスロント', '花朵粉饼', NULL, NULL, NULL, 120, NULL, NULL, 0, '资生堂', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (184, 'イヴサンローラン ユアシークレット ラグジュアリー', '手链唇膏', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (185, 'ディオール ブラッシュハーモニー', 'harmony', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (186, 'オンブル ラメ ドゥ シャネル', '麦穗', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (187, ' エレガンス ファンタムアイズ', '幻影眼影', '42180', NULL, NULL, 120, NULL, NULL, 1, 'elegance', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (188, 'ディオール プリンセスリング', '戒指', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (189, 'ゲラン ラディアント シャドウ', '眼影', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (190, 'ナイトジュエルソリッドパフューム', 'night香膏', NULL, NULL, NULL, 120, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (191, 'ジルスチュアート クリスタルブルーム ソリッドパフューム', '花朵香膏', NULL, NULL, NULL, 120, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (192, 'dior ゴルメット', '手链唇膏', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (194, 'フェイスパレット モン パリフローラル', '蝴蝶结粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (195, 'パレット パリジャンナイト ブラッシュ ルードバビロン', '爱心腮红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'ysl', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (196, 'インフィニティ ロイヤルフラワーコレクション', '皇家花卉', NULL, NULL, NULL, 120, NULL, NULL, 0, 'kose', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (197, 'インフィニティロイヤルパウダー', '皇家花卉', NULL, NULL, NULL, 120, NULL, NULL, 0, 'kose', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (198, 'ジルスチュアート ダイアモンドデュウ リップカラー', '戒指', NULL, NULL, NULL, 120, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (199, 'chantecaille', '全部', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chantecaille', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (200, 'メテオリット ヴォワイヤージュ', '蝴蝶/蜜蜂', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (201, 'ジバンシー プードル グロウ', '花朵粉饼', NULL, NULL, NULL, 480, NULL, NULL, 1, 'givenchy', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (202, 'GUERLAIN ブラッシュ エクラ', '齿轮腮红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (203, 'クルーエル ガーデニア パウダー', '花朵高光', NULL, NULL, NULL, 480, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (204, 'ゲラン プードル ドゥ ソワ', '风车高光', NULL, NULL, NULL, 480, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (205, 'メテオリット プードル ペルル', '珠珠高光', NULL, NULL, NULL, 480, NULL, NULL, 1, 'guerlain', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (206, 'プードルクルーズエキゾチック', '异国情调粉饼', NULL, NULL, NULL, 480, NULL, NULL, 1, 'givenchy', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (207, 'スウィートネスコレクション', '09圣诞', NULL, NULL, NULL, 480, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (208, 'ジルスチュアート シークレットティーズ', '10圣诞', NULL, NULL, NULL, 480, NULL, NULL, 0, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (209, 'ジルスチュアート フェアリーガーデン', '11圣诞', NULL, NULL, NULL, 480, NULL, NULL, 0, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (210, 'ジルスチュアート マイディアストロベリー', '13圣诞', NULL, NULL, NULL, 480, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (211, 'ジルスチュアート プリマグレース', '14圣诞', NULL, NULL, NULL, 480, NULL, NULL, 0, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (212, 'ジルスチュアート クリスマスローズ', '07圣诞', NULL, NULL, NULL, 480, NULL, NULL, 1, 'jill', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (213, 'ジルスチュアート クリスマス', '圣诞', NULL, NULL, NULL, 480, NULL, NULL, 0, 'jill', NULL, 100, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (214, 'パウダーセレブレーション', '粉末庆典', NULL, NULL, NULL, 480, NULL, NULL, 1, 'maquillage', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (215, 'コロマンデル ドゥ シャネル', '东方屏风', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (216, 'ジーンズ ドゥ シャネル', '牛仔', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (217, 'シャネル ラッキー ストライプ', 'lucky', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (218, 'シャネル ドンテル プレシューズ', '蕾丝', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (219, 'シャネル フルール セレスト', '花朵三色', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (220, 'シャネル オンブル ティセ ベージュ', '粉色渐变高光', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (221, 'シャネル プードゥル スカルプタントゥ', '小logo棕白粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (222, 'シャネル ペルル エ ファンテジー', '双色珠链', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (223, 'シャネル イレール グロス ', '晃动logo', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (224, 'プードゥルサテン ドゥ シャネル', '缎带', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (225, 'プードゥル シニエ', '米色印记', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (226, 'レ ペルル ドゥ シャネル', '珠珠', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (227, 'ECLATS COSMIQUES', '星球唇膏', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (228, 'プードゥルティセ', 'tissee', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (229, 'シャネル ルミエール ダルティフィス', '珠片和星球', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (230, 'ルミエール スクルテ ドゥ シャネル', '雕花粉饼', NULL, NULL, NULL, 120, NULL, NULL, 1, 'chanel', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (231, 'フルール ドゥ ヴァン パレット', '蒲公英', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (232, 'プードリエ ダンテル', '蕾丝', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (233, 'スノー フレッシュ ブラッシュ', '雪精灵', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (234, 'ディオール スノー ヴォワール ドゥ ネージュ ', '雪精灵', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (235, 'ディオール マイレディー', '编织腮红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (236, 'Dior ファーストライト', '编织腮红', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (237, 'ディオール フラワーブロッサム', '花园', NULL, NULL, NULL, 120, NULL, NULL, 1, 'dior', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (238, 'guerlain', '娇兰', '42180', NULL, NULL, 480, NULL, NULL, 1, 'guerlain', NULL, 20, '美容液');
+INSERT INTO `yahoo_search_condition` VALUES (239, 'armani', '阿玛尼', '42180', NULL, NULL, 480, NULL, NULL, 1, 'armani', NULL, 20, '口紅');
+INSERT INTO `yahoo_search_condition` VALUES (240, 'clarins', '娇韵诗', '42180', NULL, NULL, 480, NULL, NULL, 1, 'clarins', NULL, 20, 'ml');
+INSERT INTO `yahoo_search_condition` VALUES (241, 'エスティローダー パウダー', '粉饼', NULL, NULL, NULL, 480, NULL, NULL, 1, 'estee', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (242, 'ミラノコレクション エターナル', '女神限定', NULL, NULL, NULL, 480, NULL, NULL, 1, 'kanebo', NULL, 20, NULL);
+INSERT INTO `yahoo_search_condition` VALUES (243, 'ysl シルキーフィニッシュプレストパウダー', '宝石粉饼', NULL, NULL, NULL, 480, NULL, NULL, 1, 'ysl', NULL, 20, NULL);

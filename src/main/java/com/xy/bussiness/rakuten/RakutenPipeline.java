@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.xy.bussiness.UrlConstants.SHUNTONG_RAKUTEN_URL;
+
 @Component
 @Slf4j
 public class RakutenPipeline implements Pipeline {
@@ -165,20 +167,17 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append(record.getTitle());
             stringBuilder.append("</div>");
 
-//            stringBuilder.append("<div>");
-//            if (record.getItemConditionId() != null) {
-//                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
-//            }
-//            stringBuilder.append("</div>");
+
 
             stringBuilder.append("<div>");
             stringBuilder.append("价格：").append(record.getCurrentPrice());
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://friljp.jpshuntong.com/item/");
+            stringBuilder.append("<a href='");
+            stringBuilder.append(SHUNTONG_RAKUTEN_URL);
             stringBuilder.append(record.getItemId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
@@ -224,9 +223,11 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://friljp.jpshuntong.com/item/");
+            stringBuilder.append("<a href='");
+
+            stringBuilder.append(SHUNTONG_RAKUTEN_URL);
             stringBuilder.append(record.getItemId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");

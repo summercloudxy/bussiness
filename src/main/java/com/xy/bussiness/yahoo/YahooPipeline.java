@@ -24,6 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.xy.bussiness.UrlConstants.SHUNTONG_YAHOOPP_URL;
+import static com.xy.bussiness.UrlConstants.SHUNTONG_YAHOO_URL;
+
 @Component
 @Slf4j
 public class YahooPipeline implements Pipeline {
@@ -151,11 +154,6 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append(record.getTitle());
             stringBuilder.append("</div>");
 
-//            stringBuilder.append("<div>");
-//            if (record.getItemConditionId() != null) {
-//                stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
-//            }
-//            stringBuilder.append("</div>");
             if (record.getIsNew()) {
                 stringBuilder.append("<div>");
                 stringBuilder.append("全新");
@@ -166,9 +164,14 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://yahoojp.jpshuntong.com/jp/auction/");
+            stringBuilder.append("<a href='");
+            if (record.getIsPaypal()) {
+                stringBuilder.append(SHUNTONG_YAHOOPP_URL);
+            } else {
+                stringBuilder.append(SHUNTONG_YAHOO_URL);
+            }
             stringBuilder.append(record.getAuctionId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
@@ -223,9 +226,15 @@ public class YahooPipeline implements Pipeline {
 
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://yahoo.jpshuntong.com/Index/goodsitem.html?goodsid=");
+            stringBuilder.append("<a href='");
+            if (record.getIsPaypal()) {
+                stringBuilder.append(SHUNTONG_YAHOOPP_URL);
+            } else {
+                stringBuilder.append(SHUNTONG_YAHOO_URL);
+            }
+
             stringBuilder.append(record.getAuctionId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");

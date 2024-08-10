@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.xy.bussiness.UrlConstants.SHUNTONG_MEILU_URL;
+
 @Service
 public class SellerNotificationService {
     @Autowired
@@ -74,16 +76,13 @@ public class SellerNotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append("<a href='");
+
+            stringBuilder.append(SHUNTONG_MEILU_URL);
             stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>电脑端购买</a>");
-            stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
             stringBuilder.append("<a href='https://" + notifyHost + "/mercari/seller/setInterest?interest=1&itemId=");
@@ -122,15 +121,10 @@ public class SellerNotificationService {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Mercari/goodsitem.html?url=");
+            stringBuilder.append("<a href='");
+            stringBuilder.append(SHUNTONG_MEILU_URL);
             stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>点击购买</a>");
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div>");
-            stringBuilder.append("<a href='http://mercari.jpshuntong.com/Meilu/goodsitem.html?url=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>电脑端购买</a>");
+            stringBuilder.append("'>顺通购买</a>");
             stringBuilder.append("</div>");
 
 
