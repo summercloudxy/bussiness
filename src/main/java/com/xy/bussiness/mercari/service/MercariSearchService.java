@@ -128,7 +128,11 @@ public class MercariSearchService {
             ItemRecord oldItem = oldItems.get(mercariItemId);
             ItemRecord itemRecord = new ItemRecord();
             itemRecord.setMercariItemId(mercariItemId);
+            itemRecord.setItemType(item.getItemType());
             itemRecord.setSearchConditionId(searchCondition.getId());
+            if (!CollectionUtils.isEmpty(item.getThumbnails())){
+                itemRecord.setImageUrl(item.getThumbnails().get(0));
+            }
             itemRecord.setCurrentPrice(Integer.valueOf(item.getPrice()));
             itemRecord.setCreateDate(new Date(Long.parseLong(item.getCreated()) * 1000));
             itemRecord.setUpdateDate(new Date(Long.parseLong(item.getUpdated()) * 1000));

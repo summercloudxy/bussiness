@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.xy.bussiness.UrlConstants.JPDELIVER_MEILU_URL;
 import static com.xy.bussiness.UrlConstants.SHUNTONG_MEILU_URL;
 
 @Service
@@ -60,17 +61,32 @@ public class NotificationService {
 
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://jp.mercari.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("_1.jpg'/></a>   ");
+            if ("ITEM_TYPE_MERCARI".equalsIgnoreCase(record.getItemType())) {
+                stringBuilder.append("<a href='https://jp.mercari.com/item/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("_1.jpg'/></a>   ");
+            }else {
+                stringBuilder.append("<a href='https://jp.mercari.com/shops/product/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("'><img src='");
+                stringBuilder.append(record.getImageUrl());
+                stringBuilder.append("'/></a>   ");
+            }
+
             stringBuilder.append("</div>");
             stringBuilder.append(" <div style='flex:1'>");
             stringBuilder.append("<div>");
             stringBuilder.append(record.getMercariItemTitle());
             stringBuilder.append("</div>");
 
+
+            if ("ITEM_TYPE_BEYOND".equalsIgnoreCase(record.getItemType())){
+                stringBuilder.append("<div>");
+                stringBuilder.append("店铺：").append(record.getSellerId());
+                stringBuilder.append("</div>");
+            }
             stringBuilder.append("<div>");
             if (record.getItemConditionId() != null) {
                 stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
@@ -85,6 +101,13 @@ public class NotificationService {
             stringBuilder.append(SHUNTONG_MEILU_URL);
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>顺通购买</a>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='");
+            stringBuilder.append(JPDELIVER_MEILU_URL);
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>jpDeliver购买</a>");
             stringBuilder.append("</div>");
 
 //            stringBuilder.append("<div>");
@@ -116,17 +139,30 @@ public class NotificationService {
         for (ItemRecord record : recordList) {
             stringBuilder.append("<div style='display:flex;width:100%'>");
             stringBuilder.append("<div style='flex: 1'>");
-            stringBuilder.append("<a href='https://jp.mercari.com/item/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("_1.jpg'/></a>   ");
+
+            if ("ITEM_TYPE_MERCARI".equalsIgnoreCase(record.getItemType())) {
+                stringBuilder.append("<a href='https://jp.mercari.com/item/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("'><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("_1.jpg'/></a>   ");
+            }else {
+                stringBuilder.append("<a href='https://jp.mercari.com/shops/product/");
+                stringBuilder.append(record.getMercariItemId());
+                stringBuilder.append("'><img src='");
+                stringBuilder.append(record.getImageUrl());
+                stringBuilder.append("'/></a>   ");
+            }
             stringBuilder.append("</div>");
             stringBuilder.append(" <div style='flex:1'>");
             stringBuilder.append("<div>");
             stringBuilder.append(record.getMercariItemTitle());
             stringBuilder.append("</div>");
-
+            if ("ITEM_TYPE_BEYOND".equalsIgnoreCase(record.getItemType())){
+                stringBuilder.append("<div>");
+                stringBuilder.append("店铺");
+                stringBuilder.append("</div>");
+            }
             stringBuilder.append("<div>");
             if (record.getItemConditionId() != null) {
                 stringBuilder.append(ConditionEnum.getDescriptionById(record.getItemConditionId()));
@@ -141,6 +177,14 @@ public class NotificationService {
             stringBuilder.append("<a href='https://meilu.jpshuntong.com/item/");
             stringBuilder.append(record.getMercariItemId());
             stringBuilder.append("'>顺通购买</a>");
+            stringBuilder.append("</div>");
+
+
+            stringBuilder.append("<div>");
+            stringBuilder.append("<a href='");
+            stringBuilder.append(JPDELIVER_MEILU_URL);
+            stringBuilder.append(record.getMercariItemId());
+            stringBuilder.append("'>jpDeliver购买</a>");
             stringBuilder.append("</div>");
 
 //            stringBuilder.append("<div>");

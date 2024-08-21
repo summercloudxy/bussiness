@@ -60,6 +60,11 @@ public class MercariCrawler  {
         searchCondition.setStatus(Collections.singletonList("STATUS_ON_SALE"));
         searchCondition.setSort("SORT_CREATED_TIME");
 
+        List<Object> defaultDatasets = new ArrayList<>();
+        defaultDatasets.add("DATASET_TYPE_MERCARI");
+        defaultDatasets.add("DATASET_TYPE_BEYOND");
+        searchItemListRequest.setDefaultDatasets(defaultDatasets);
+
         searchCondition.setKeyword(mercariSearchCondition.getKeyword());
         searchCondition.setPriceMax(mercariSearchCondition.getPriceMax() == null? 0: mercariSearchCondition.getPriceMax());
         searchCondition.setPriceMin(mercariSearchCondition.getPriceMin() == null? 0 : mercariSearchCondition.getPriceMin());
