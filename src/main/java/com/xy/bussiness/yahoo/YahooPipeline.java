@@ -93,6 +93,7 @@ public class YahooPipeline implements Pipeline {
                         item.setOriginPrice(oldItem.getOriginPrice());
                         item.setId(oldItem.getId());
                         item.setUpdateDate(new Date());
+                        item.setInterest(true);
                         priceItemList.add(item);
                     }
                 }
