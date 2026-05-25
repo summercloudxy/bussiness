@@ -7,16 +7,15 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.MercariCrawler;
 import com.xy.bussiness.mercari.apibean.ItemData;
+import com.xy.bussiness.mercari.apibean.ItemsItem;
 import com.xy.bussiness.mercari.mybatisservice.MercariItemRecordService;
 import com.xy.bussiness.mercari.mybatisservice.MercariSearchConditionService;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
-import com.xy.bussiness.mercari.service.DpopService;
 import com.xy.bussiness.mercari.service.MercariSearchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
@@ -33,8 +32,6 @@ public class MercariRestController {
     private MercariItemRecordService itemRecordService;
     @Autowired
     private MercariCrawler mercariCrawler;
-    @Autowired
-    private DpopService dpopService;
     @Autowired
     private MercariSearchService mercariSearchService;
     @Autowired
@@ -122,7 +119,6 @@ public class MercariRestController {
      * 更新销售状态
      */
     public void updateItemSoldStatus() throws InterruptedException {
-        dpopService.updateItemDpop(null);
         LambdaQueryWrapper<ItemRecord> queryWrapper = Wrappers.lambdaQuery();
         queryWrapper.eq(ItemRecord::isInterest, true);
 
@@ -167,21 +163,22 @@ public class MercariRestController {
         return itemDetail;
     }
 
-    @PostMapping("/mercari/dpop")
-    public void updateDpop() throws InterruptedException {
-        dpopService.updateDpop();
-    }
-
-
-    @GetMapping("/mercari/dpop")
-    public String getDpop() {
-        return mercariCrawler.getDpop();
-    }
-
-
-    @PostMapping("/mercari/itemdpop")
-    public void updateItemDpop(String itemId) throws InterruptedException {
-        dpopService.updateItemDpop(itemId);
+    @GetMapping("/mercari/test/search")
+    public Map<String, Object> testSearch(String keyword) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        MercariSearchCondition condition = new MercariSearchCondition();
+        condition.setKeyword(StringUtils.isBlank(keyword) ? "chanel" : keyword);
+        try {
+            List<ItemsItem> items = mercariCrawler.getMercariItemsByCondition(condition);
+            result.put("success", true);
+            result.put("keyword", condition.getKeyword());
+            result.put("count", items == null ? 0 : items.size());
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("keyword", condition.getKeyword());
+            result.put("error", e.getClass().getName() + ": " + e.getMessage());
+        }
+        return result;
     }
 
     @GetMapping("/mercari/updateCondition")

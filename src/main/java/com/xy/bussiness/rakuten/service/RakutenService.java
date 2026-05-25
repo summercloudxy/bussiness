@@ -39,6 +39,12 @@ public class RakutenService {
     private Map<Integer, RakutenSearchCondition> searchConditionMap;
     @Value("${rakuten.enable:true}")
     private Boolean rakutenEnable;
+    @Value("${network.proxy.enabled:false}")
+    private boolean proxyEnabled;
+    @Value("${network.proxy.host:127.0.0.1}")
+    private String proxyHost;
+    @Value("${network.proxy.port:7897}")
+    private int proxyPort;
 
     private LinkedBlockingQueue<SearchRequest> queue = new LinkedBlockingQueue<>(1000);
 
@@ -67,8 +73,9 @@ public class RakutenService {
                     scheduledExecutorService.scheduleWithFixedDelay(mercariTask, 0, searchCondition.getDuration(), TimeUnit.MINUTES);
                 }
             }
-
-            httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 7890)));
+            if (proxyEnabled) {
+                httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy(proxyHost, proxyPort)));
+            }
             new Thread(() -> execute()).start();
         }
     }

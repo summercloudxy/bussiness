@@ -3,7 +3,11 @@ package com.xy.bussiness.yahoo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.xy.bussiness.notification.mail.MyMailSender;
+import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.wechat.NotifyImageUrls;
+import com.xy.bussiness.notification.wechat.WeChatPlatform;
+import com.xy.bussiness.notification.wechat.WeChatMarkdownLinks;
+import com.xy.bussiness.notification.wechat.WeChatNewsArticle;
 import com.xy.bussiness.yahoo.mybatisservice.YahooItemRecordService;
 import com.xy.bussiness.yahoo.mybean.YahooItemRecord;
 import com.xy.bussiness.yahoo.mybean.YahooSearchCondition;
@@ -36,7 +40,7 @@ public class YahooPipeline implements Pipeline {
     @Autowired
     private YahooService yahooService;
     @Autowired
-    private MyMailSender mailSender;
+    private NotifySender notifySender;
 
     @Value("${notification.host}")
     private String notifyHost;
@@ -127,11 +131,15 @@ public class YahooPipeline implements Pipeline {
 
     public boolean sendNewMail(YahooSearchCondition searchCondition, List<YahooItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        return mailSender.send("雅虎:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems), 0);
+        String topic = "雅虎:" + searchCondition.getBrand() + description + "上新啦";
+        return notifySender.send(topic, getNewContent(newItems), getNewWeChatContent(newItems),
+                buildYahooNewsArticles(newItems, true), WeChatPlatform.YAHOO, 0);
     }
 
     public boolean sendPriceMail(YahooSearchCondition searchCondition, List<YahooItemRecord> priceItems) throws Exception {
-        return mailSender.send("雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems), 0);
+        String topic = "雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦";
+        return notifySender.send(topic, getPriceContent(priceItems), getPriceWeChatContent(priceItems),
+                buildYahooNewsArticles(priceItems, false), WeChatPlatform.YAHOO, 0);
     }
 
 
@@ -250,6 +258,80 @@ public class YahooPipeline implements Pipeline {
         }
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
+    }
+
+    private String getNewWeChatContent(List<YahooItemRecord> recordList) {
+        StringBuilder sb = new StringBuilder();
+        for (YahooItemRecord record : recordList) {
+            appendYahooItemMarkdown(sb, record, true);
+        }
+        return sb.toString();
+    }
+
+    private String getPriceWeChatContent(List<YahooItemRecord> recordList) {
+        StringBuilder sb = new StringBuilder();
+        for (YahooItemRecord record : recordList) {
+            appendYahooItemMarkdown(sb, record, false);
+            sb.append("- 价格：").append(record.getOriginPrice()).append(" → ").append(record.getAuctionPrice()).append("\n\n");
+        }
+        return sb.toString();
+    }
+
+    private void appendYahooItemMarkdown(StringBuilder sb, YahooItemRecord record, boolean isNew) {
+        sb.append("### ").append(record.getTitle()).append("\n");
+        if (record.getIsNew()) {
+            sb.append("- 全新\n");
+        }
+        if (isNew) {
+            sb.append("- 价格：").append(record.getAuctionPrice()).append("\n");
+        }
+        String interest = isNew ? "1" : "0";
+        String interestLabel = isNew ? "添加关注" : "不再关注";
+        WeChatMarkdownLinks.appendThreeLinks(sb,
+                yahooItemUrl(record),
+                shuntongUrl(record) + record.getAuctionId(),
+                "https://" + notifyHost + "/yahoo/setInterest?interest=" + interest
+                        + "&itemId=" + record.getAuctionId(),
+                interestLabel);
+        sb.append("\n");
+    }
+
+    private String yahooItemUrl(YahooItemRecord record) {
+        if (record.getIsPaypal()) {
+            return "https://paypayfleamarket.yahoo.co.jp/item/" + record.getAuctionId();
+        }
+        return "https://page.auctions.yahoo.co.jp/jp/auction/" + record.getAuctionId();
+    }
+
+    private String shuntongUrl(YahooItemRecord record) {
+        return record.getIsPaypal() ? SHUNTONG_YAHOOPP_URL : SHUNTONG_YAHOO_URL;
+    }
+
+    private List<WeChatNewsArticle> buildYahooNewsArticles(List<YahooItemRecord> recordList, boolean isNew) {
+        List<WeChatNewsArticle> articles = new ArrayList<>();
+        for (YahooItemRecord record : recordList) {
+            String picurl = NotifyImageUrls.pickWeChatPicUrl(record.getImageUrl());
+            if (picurl == null) {
+                continue;
+            }
+            StringBuilder desc = new StringBuilder();
+            if (record.getIsNew()) {
+                desc.append("全新\n");
+            }
+            if (isNew) {
+                desc.append("价格：").append(record.getAuctionPrice()).append("\n");
+            } else {
+                desc.append("价格：").append(record.getOriginPrice()).append(" → ").append(record.getAuctionPrice()).append("\n");
+            }
+            desc.append("点击下方消息中的链接操作");
+            articles.add(WeChatNewsArticle.builder()
+                    .title(record.getTitle())
+                    .description(desc.toString())
+                    .url(yahooItemUrl(record))
+                    .picurl(picurl)
+                    .build());
+        }
+        return articles;
     }
 
 }

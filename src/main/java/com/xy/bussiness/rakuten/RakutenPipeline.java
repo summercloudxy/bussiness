@@ -5,7 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
-import com.xy.bussiness.notification.mail.MyMailSender;
+import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.wechat.NotifyImageUrls;
+import com.xy.bussiness.notification.wechat.WeChatPlatform;
+import com.xy.bussiness.notification.wechat.WeChatMarkdownLinks;
+import com.xy.bussiness.notification.wechat.WeChatNewsArticle;
 import com.xy.bussiness.rakuten.mybatisservice.RakutenItemRecordService;
 import com.xy.bussiness.rakuten.mybean.RakutenItemRecord;
 import com.xy.bussiness.rakuten.mybean.RakutenSearchCondition;
@@ -37,7 +41,7 @@ public class RakutenPipeline implements Pipeline {
     @Autowired
     private RakutenItemRecordService rakutenItemRecordService;
     @Autowired
-    private MyMailSender mailSender;
+    private NotifySender notifySender;
     @Value("${notification.host}")
     private String notifyHost;
 
@@ -144,11 +148,15 @@ public class RakutenPipeline implements Pipeline {
 
     public boolean sendNewMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
-        return mailSender.send("乐天:" + searchCondition.getBrand() + description + "上新啦", getNewContent(newItems), 0);
+        String topic = "乐天:" + searchCondition.getBrand() + description + "上新啦";
+        return notifySender.send(topic, getNewContent(newItems), getNewWeChatContent(newItems),
+                buildRakutenNewsArticles(newItems, true), WeChatPlatform.RAKUTEN, 0);
     }
 
     public boolean sendPriceMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> priceItems) throws Exception {
-        return mailSender.send("乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦", getPriceContent(priceItems), 0);
+        String topic = "乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦";
+        return notifySender.send(topic, getPriceContent(priceItems), getPriceWeChatContent(priceItems),
+                buildRakutenNewsArticles(priceItems, false), WeChatPlatform.RAKUTEN, 0);
     }
 
 
@@ -243,6 +251,63 @@ public class RakutenPipeline implements Pipeline {
         }
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
+    }
+
+    private String getNewWeChatContent(List<RakutenItemRecord> recordList) {
+        StringBuilder sb = new StringBuilder();
+        for (RakutenItemRecord record : recordList) {
+            appendRakutenItemMarkdown(sb, record, true);
+        }
+        return sb.toString();
+    }
+
+    private String getPriceWeChatContent(List<RakutenItemRecord> recordList) {
+        StringBuilder sb = new StringBuilder();
+        for (RakutenItemRecord record : recordList) {
+            appendRakutenItemMarkdown(sb, record, false);
+            sb.append("- 价格：").append(record.getOriginPrice()).append(" → ").append(record.getCurrentPrice()).append("\n\n");
+        }
+        return sb.toString();
+    }
+
+    private void appendRakutenItemMarkdown(StringBuilder sb, RakutenItemRecord record, boolean isNew) {
+        sb.append("### ").append(record.getTitle()).append("\n");
+        if (isNew) {
+            sb.append("- 价格：").append(record.getCurrentPrice()).append("\n");
+        }
+        String interest = isNew ? "1" : "0";
+        String interestLabel = isNew ? "添加关注" : "不再关注";
+        WeChatMarkdownLinks.appendThreeLinks(sb,
+                record.getItemUrl(),
+                SHUNTONG_RAKUTEN_URL + record.getItemId(),
+                "https://" + notifyHost + "/rakuten/setInterest?interest=" + interest
+                        + "&itemId=" + record.getItemId(),
+                interestLabel);
+        sb.append("\n");
+    }
+
+    private List<WeChatNewsArticle> buildRakutenNewsArticles(List<RakutenItemRecord> recordList, boolean isNew) {
+        List<WeChatNewsArticle> articles = new ArrayList<>();
+        for (RakutenItemRecord record : recordList) {
+            String picurl = NotifyImageUrls.pickWeChatPicUrl(record.getImageUrl());
+            if (picurl == null) {
+                continue;
+            }
+            StringBuilder desc = new StringBuilder();
+            if (isNew) {
+                desc.append("价格：").append(record.getCurrentPrice()).append("\n");
+            } else {
+                desc.append("价格：").append(record.getOriginPrice()).append(" → ").append(record.getCurrentPrice()).append("\n");
+            }
+            desc.append("点击下方消息中的链接操作");
+            articles.add(WeChatNewsArticle.builder()
+                    .title(record.getTitle())
+                    .description(desc.toString())
+                    .url(record.getItemUrl())
+                    .picurl(picurl)
+                    .build());
+        }
+        return articles;
     }
 
 }

@@ -13,6 +13,7 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpResponse;
@@ -30,6 +31,13 @@ import java.security.cert.X509Certificate;
 
 @Configuration
 public class RestTemplateManager {
+
+    @Value("${network.proxy.enabled:false}")
+    private boolean proxyEnabled;
+    @Value("${network.proxy.host:127.0.0.1}")
+    private String proxyHost;
+    @Value("${network.proxy.port:7897}")
+    private int proxyPort;
 
     @Bean
     public RestTemplate httpsRestTemplate(HttpComponentsClientHttpRequestFactory httpsFactory) {
@@ -56,7 +64,7 @@ public class RestTemplateManager {
         return httpsFactory;
     }
 
-    public static CloseableHttpClient acceptsUntrustedCertsHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    public CloseableHttpClient acceptsUntrustedCertsHttpClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         HttpClientBuilder b = HttpClientBuilder.create();
 
         // setup a Trust Strategy that allows all certificates.
@@ -84,9 +92,11 @@ public class RestTemplateManager {
         connMgr.setDefaultMaxPerRoute(100);
         b.setConnectionManager(connMgr);
 
-        HttpHost proxy = new HttpHost("127.0.0.1",7890);
-        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
-        b.setRoutePlanner(routePlanner);
+        if (proxyEnabled) {
+            HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+            b.setRoutePlanner(routePlanner);
+        }
 
         return b.build();
     }

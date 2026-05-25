@@ -8,11 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.downloader.HttpClientDownloader;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.proxy.Proxy;
-import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,18 +66,5 @@ public class RakutenPageProcessor implements PageProcessor {
 
     public Site getSite() {
         return site;
-    }
-
-    //WebMagic使用的默认下载器是HttpClient
-    public static void main(String[] args) {
-        //提供自己定义的PageProcessor
-        Spider spider = Spider.create(new RakutenPageProcessor())
-                //设置初始下载url地址
-                .addUrl("https://fril.jp/s?query=%E3%82%A2%E3%83%AB%E3%83%93%E3%82%AA%E3%83%B3+%E3%83%AC%E3%82%AC%E3%82%A1%E3%83%BC%E3%83%A1&transaction=selling");
-        HttpClientDownloader httpClientDownloader = new HttpClientDownloader();
-        httpClientDownloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("127.0.0.1", 7890)));
-        spider.setDownloader(httpClientDownloader);
-//        spider.setUUID()
-        spider.run();
     }
 }

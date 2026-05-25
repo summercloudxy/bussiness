@@ -7,8 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class BussinessApplicationTests {
 
     @Test
-    boolean contextLoads() {
-        return true;
+    void contextLoads() {
     }
 
 }

@@ -1,33 +1,8 @@
 spring:
-  mail:
-    # 配置 SMTP 服务器地址
-    host: smtp.qq.com
-
-    # 发送者邮箱
-    username: 469654418@qq.com
-    # 配置密码，注意不是真正的密码，而是刚刚申请到的授权码
-#    password: xtpxcaddtdxgbgca
-    password: nnrkphflohjobjdh
-#    password: egnibufqrwxvbjhc
-#    password: mkkiigbjuugccahd
-
-    # 端口号465或587
-    port: 587
-    # 默认的邮件编码为UTF-8
-    default-encoding: UTF-8
-    # 配置SSL 加密工厂
-    properties:
-      mail:
-        smtp:
-          socketFactoryClass: javax.net.ssl.SSLSocketFactory
-        #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
-        debug: false
-
-
   datasource:
     url: jdbc:mysql://localhost:3306/mercari?serverTimezone=Asia/Shanghai&characterEncoding=utf-8&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: 111111
+    password: X123xiayun
     type: com.alibaba.druid.pool.DruidDataSource
 
   main:
@@ -46,11 +21,68 @@ mybatis:
 server:
   port: 8111
 
+mercari:
+  enable: true
 
+rakuten:
+  enable: true
 
-chromedriver:
-  address: C:/Program Files/Google/Chrome/Application/chromedriver.exe
+yahoo:
+  enable: true
 
+network:
+  proxy:
+    enabled: true
+    host: 127.0.0.1
+    port: 7897
+
+notification:
+  host: 3yd4544930.zicp.fun
+
+# 微信通知（与邮件并行，微信失败不影响入库逻辑）
+# type: pushplus — 在 https://www.pushplus.plus 获取 token，扫码绑定微信
+# type: wework   — 企业微信群机器人 webhook 的 key
+wechat:
+  enabled: true
+  type: wework
+  token:
+  # 仅填 key 即可，也支持粘贴完整 webhook URL
+  webhook-key: 131d5793-da4a-41a5-acc0-4eb1e3b97fcf
+  # 各平台是否发微信（默认仅煤炉；邮件不受此配置影响）
+  platforms:
+    mercari: true
+    yahoo: false
+    rakuten: false
+
+# 邮件：enabled 控制是否发邮件；from=发信 SMTP，to=收信地址
 mail:
-  passwordArray: hwkbyihwtwghbhcb,xtpxcaddtdxgbgca,egnibufqrwxvbjhc,mkkiigbjuugccahd
-
+  enabled: true
+  from: qq
+  to: qq
+  cleanup:
+    enabled: true
+    cron: "0 0 3 * * ?"
+    provider: qq
+    sent-folder: 已发送
+    batch-size: 200
+    # 仅删本应用邮件：优先匹配 X-Bussiness-Notification 头；无头时用主题关键词兜底
+    match-subject-keywords: true
+    subject-keywords:
+      - 上新啦
+      - 的这些商品降价啦
+      - 关注的用户上新
+      - 关注的用户降价啦
+  qq:
+    host: smtp.qq.com
+    port: 465
+    username: 469654418@qq.com
+    password: xuzapehbzctdcaja
+    imap-host: imap.qq.com
+    imap-port: 993
+    # 若 IMAP 授权码与 SMTP 不同，在此单独配置
+    # imap-password: your_imap_auth_code
+  netease:
+    host: smtp.163.com
+    port: 465
+    username: fengchunzhimei@163.com
+    password: JYjyk37wphKd9Xyw
