@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>@cosme 产品挑选</title>
+    <script type="text/javascript" src="/layui/layui.js" charset="utf-8"></script>
+    <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
+    <style>
+        body { background: #f5f5f5; padding: 16px; }
+        .toolbar { background: #fff; padding: 16px; border-radius: 4px; margin-bottom: 16px; }
+        .product-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+        .product-card {
+            width: 220px; background: #fff; border: 1px solid #e6e6e6;
+            border-radius: 4px; padding: 10px; position: relative;
+        }
+        .product-card.selected { border-color: #1E9FFF; box-shadow: 0 0 0 2px rgba(30,159,255,.2); }
+        .product-card.added { border-color: #52c41a; background: #f6ffed; }
+        .product-card.added.selected { border-color: #1E9FFF; background: #f0f9ff; box-shadow: 0 0 0 2px rgba(30,159,255,.2); }
+        .added-badge {
+            position: absolute; top: 8px; right: 8px; background: #52c41a; color: #fff;
+            font-size: 11px; line-height: 1; padding: 4px 6px; border-radius: 3px;
+        }
+        .platform-tags { margin-top: 6px; font-size: 11px; color: #389e0d; }
+        .added-keywords {
+            margin-top: 4px; font-size: 11px; color: #666; line-height: 1.4;
+            word-break: break-all; max-height: 40px; overflow: hidden;
+        }
+        .product-legend {
+            display: flex; gap: 16px; margin-bottom: 12px; font-size: 12px; color: #666;
+        }
+        .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .legend-dot {
+            width: 12px; height: 12px; border-radius: 2px; border: 1px solid #e6e6e6; background: #fff;
+        }
+        .legend-dot.added { border-color: #52c41a; background: #f6ffed; }
+        .legend-dot.selected { border-color: #1E9FFF; background: #f0f9ff; }
+        .product-card img { width: 100%; height: 140px; object-fit: contain; background: #fafafa; }
+        .product-card img[src=""], .product-card img:not([src]) { visibility: hidden; }
+        .product-name { font-size: 13px; font-weight: bold; margin: 8px 0 4px; min-height: 36px; }
+        .product-meta { font-size: 12px; color: #666; line-height: 1.5; }
+        .product-price { color: #e4393c; margin-top: 4px; font-size: 12px; }
+        .card-actions { margin-top: 8px; display: flex; gap: 6px; }
+        .empty-tip { text-align: center; color: #999; padding: 60px 0; width: 100%; }
+        .pager { text-align: center; margin-top: 16px; }
+        .form-section { margin-bottom: 12px; }
+        .form-section-title { font-weight: bold; margin-bottom: 6px; }
+        .category-group label { margin-right: 10px; display: inline-block; margin-bottom: 4px; }
+        .main-layout { display: flex; gap: 16px; align-items: flex-start; }
+        .category-sidebar {
+            width: 260px; flex-shrink: 0; background: #fff; border-radius: 4px;
+            padding: 12px; border: 1px solid #e6e6e6;
+        }
+        .category-sidebar h3 { font-size: 14px; margin: 0 0 10px; color: #333; }
+        .category-list { list-style: none; margin: 0; padding: 0; max-height: 70vh; overflow-y: auto; }
+        .category-list li { margin-bottom: 4px; }
+        .category-list a, .category-list span.disabled {
+            display: block; padding: 6px 8px; border-radius: 4px; font-size: 13px;
+            color: #333; text-decoration: none; line-height: 1.4;
+        }
+        .category-list a:hover { background: #f0f7ff; color: #1E9FFF; }
+        .category-list li.active a { background: #1E9FFF; color: #fff; }
+        .category-list span.disabled { color: #bbb; cursor: not-allowed; }
+        .category-count { color: #999; font-size: 12px; margin-left: 4px; }
+        .category-list li.active .category-count { color: rgba(255,255,255,.85); }
+        .category-list li.lv2 a, .category-list li.lv2 span.disabled {
+            padding-left: 28px; font-size: 12px; color: #555;
+        }
+        .category-list li.lv2.active a { color: #fff; }
+        .product-area { flex: 1; min-width: 0; }
+        .brand-shortcuts { margin-top: 12px; }
+        .brand-shortcuts-title { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .brand-chip-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 120px; overflow-y: auto; }
+        .brand-chip {
+            border: 1px solid #dcdfe6; background: #fff; color: #333;
+            border-radius: 16px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+        }
+        .brand-chip:hover { border-color: #1E9FFF; color: #1E9FFF; background: #f0f7ff; }
+        .brand-chip.active { border-color: #1E9FFF; background: #1E9FFF; color: #fff; }
+        .add-keyword-form { padding: 16px; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <h2 style="margin-bottom:12px;">@cosme 产品挑选 · 加入搜索关键字</h2>
+    <div class="layui-form layui-row layui-col-space10">
+        <div class="layui-col-md4">
+            <input type="text" id="searchKeyword" class="layui-input" th:value="${keyword}" placeholder="搜索关键字，如 dior">
+        </div>
+        <div class="layui-col-md8">
+            <button class="layui-btn" onclick="doSearch(1)">搜索</button>
+            <button class="layui-btn layui-btn-normal" onclick="openCosme()">打开原站</button>
+            <button class="layui-btn layui-btn-warm" onclick="batchAdd()">批量添加选中</button>
+            <a href="/mercari" class="layui-btn layui-btn-primary">煤炉管理</a>
+        </div>
+    </div>
+    <div id="searchInfo" style="margin-top:10px;color:#666;font-size:13px;"></div>
+    <div class="brand-shortcuts">
+        <div class="brand-shortcuts-title">品牌快捷搜索（来自关键字库，也可自行输入上方关键字）</div>
+        <div class="brand-chip-list" id="brandShortcuts"></div>
+    </div>
+</div>
+
+<div class="main-layout">
+    <div class="category-sidebar">
+        <h3>按类别筛选（カテゴリから探す）</h3>
+        <ul class="category-list" id="categoryList"></ul>
+    </div>
+    <div class="product-area">
+        <div class="product-legend">
+            <span class="legend-item"><span class="legend-dot"></span> 未添加</span>
+            <span class="legend-item"><span class="legend-dot added"></span> 已有关键字（可继续添加）</span>
+            <span class="legend-item"><span class="legend-dot selected"></span> 当前选中</span>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+        <div class="pager" id="pager"></div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var currentKeyword = /*[[${keyword}]]*/ 'dior';
+    var currentPage = 1;
+    var currentCategoryId = '';
+    var totalPages = 1;
+    var selectedProducts = {};
+    var productCache = {};
+    var layer;
+    var addingProduct = null;
+    var brandList = /*[[${brands}]]*/ [];
+    var activeBrandEn = '';
+
+    layui.use('layer', function () {
+        layer = layui.layer;
+    });
+
+    var MERCARI_CATEGORIES = [
+        {code: 'HUAZHUANGPIN', label: '化妆品'},
+        {code: 'DIZHUANGALL', label: '底妆全部'},
+        {code: 'JICHU', label: '基础'},
+        {code: 'DIZHUANG', label: '底妆'},
+        {code: 'XIANGFEN', label: '香粉'},
+        {code: 'HUAZHUANGPINALL', label: '化妆品全部'},
+        {code: 'YANYING', label: '眼影'},
+        {code: 'YANXIANBI', label: '眼线笔'},
+        {code: 'KOUHONG', label: '口红'},
+        {code: 'CHUNCAI', label: '唇彩'},
+        {code: 'LIANJIA', label: '脸颊'},
+        {code: 'LIANSE', label: '脸色'}
+    ];
+
+    $(function () {
+        loadBrands();
+        doSearch(1);
+    });
+
+    function loadBrands() {
+        if (brandList && brandList.length > 0) {
+            renderBrandShortcuts(brandList);
+            return;
+        }
+        $.get('/cosme/brands', function (res) {
+            brandList = res || [];
+            renderBrandShortcuts(brandList);
+        });
+    }
+
+    function renderBrandShortcuts(brands) {
+        if (!brands || brands.length === 0) {
+            $('#brandShortcuts').html('<span style="color:#999;font-size:12px;">暂无品牌，请先在煤炉关键字库中添加</span>');
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < brands.length; i++) {
+            var b = brands[i];
+            var keyword = b.nameJa || b.nameEn;
+            var label = b.nameEn + '（' + (b.nameJa || b.nameEn) + '）';
+            var active = activeBrandEn === b.nameEn ? ' active' : '';
+            html += '<button type="button" class="brand-chip' + active + '" data-en="' + escapeAttr(b.nameEn) + '" ' +
+                'onclick="searchByBrand(\'' + escapeAttr(keyword) + '\', \'' + escapeAttr(b.nameEn) + '\')">' +
+                escapeHtml(label) + '</button>';
+        }
+        $('#brandShortcuts').html(html);
+    }
+
+    function searchByBrand(keyword, nameEn) {
+        activeBrandEn = nameEn || '';
+        $('#searchKeyword').val(keyword);
+        renderBrandShortcuts(brandList);
+        doSearch(1, '');
+    }
+
+    function doSearch(page, categoryId) {
+        currentKeyword = $('#searchKeyword').val().trim();
+        if (!currentKeyword) {
+            layer.msg('请输入搜索关键字');
+            return;
+        }
+        if (categoryId !== undefined) {
+            currentCategoryId = categoryId || '';
+        }
+        activeBrandEn = matchBrandByKeyword(currentKeyword);
+        renderBrandShortcuts(brandList);
+        currentPage = page;
+        $.get('/cosme/search', {
+            keyword: currentKeyword,
+            page: page,
+            categoryId: currentCategoryId || undefined
+        }, function (res) {
+            renderCategories(res.categories || []);
+            renderProducts(res);
+            renderPager(res);
+            var categoryText = currentCategoryId ? ' · 已筛选类别' : '';
+            var info = '共 ' + (res.total || 0) + ' 件，第 ' + res.page + ' / ' + (res.totalPages || 1) + ' 页' + categoryText;
+            $('#searchInfo').text(info);
+        }).fail(function () {
+            layer.msg('搜索失败，请稍后重试');
+        });
+    }
+
+    function renderCategories(categories) {
+        if (!categories || categories.length === 0) {
+            categories = [{id: '', label: '全部（すべて）', count: 0, selectable: true, selected: !currentCategoryId}];
+        }
+        var html = '';
+        for (var i = 0; i < categories.length; i++) {
+            var c = categories[i];
+            var countText = '<span class="category-count">(' + c.count + ')</span>';
+            var levelClass = c.level === 2 ? ' class="lv2"' : '';
+            if (!c.selectable) {
+                html += '<li' + levelClass + '><span class="disabled">' + escapeHtml(c.label) + countText + '</span></li>';
+                continue;
+            }
+            var active = c.selected ? ' class="active' + (c.level === 2 ? ' lv2' : '') + '"' : levelClass;
+            html += '<li' + active + '><a href="javascript:;" onclick="selectCategory(\'' + escapeAttr(c.id || '') + '\')">' +
+                escapeHtml(c.label) + countText + '</a></li>';
+        }
+        $('#categoryList').html(html);
+    }
+
+    function selectCategory(categoryId) {
+        doSearch(1, categoryId);
+    }
+
+    function renderProducts(res) {
+        var html = '';
+        if (!res.products || res.products.length === 0) {
+            html = '<div class="empty-tip">未找到产品</div>';
+        } else {
+            for (var i = 0; i < res.products.length; i++) {
+                var p = res.products[i];
+                productCache[p.productId] = p;
+                var cardClass = 'product-card';
+                if (p.keywordAdded) {
+                    cardClass += ' added';
+                }
+                if (selectedProducts[p.productId]) {
+                    cardClass += ' selected';
+                }
+                var img = p.imageUrl || '';
+                var badge = '';
+                if (p.keywordAdded) {
+                    var badgeText = (p.keywordCount && p.keywordCount > 1) ? ('已添加 ' + p.keywordCount) : '已添加';
+                    badge = '<span class="added-badge">' + escapeHtml(badgeText) + '</span>';
+                }
+                var platformTags = buildPlatformTags(p);
+                var addBtnText = p.keywordAdded ? '继续添加' : '添加';
+                html += '<div class="' + cardClass + '" data-id="' + p.productId + '">' + badge +
+                    (img ? '<img src="' + img + '" referrerpolicy="no-referrer" alt="">' :
+                        '<div style="height:140px;background:#fafafa;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px;">暂无图片</div>') +
+                    '<div class="product-name">' + escapeHtml(p.name) + '</div>' +
+                    '<div class="product-meta">品牌：' + escapeHtml(p.brand || '-') + '</div>' +
+                    '<div class="product-meta">类别：' + escapeHtml(p.category || '-') + '</div>' +
+                    '<div class="product-price">' + escapeHtml(p.price || '') + '</div>' +
+                    platformTags +
+                    '<div class="card-actions">' +
+                    '<button class="layui-btn layui-btn-xs layui-btn-primary" onclick="toggleSelect(\'' + p.productId + '\')">选中</button>' +
+                    '<button class="layui-btn layui-btn-xs" onclick="openAddFormById(\'' + p.productId + '\')">' + escapeHtml(addBtnText) + '</button>' +
+                    '<a class="layui-btn layui-btn-xs layui-btn-normal" href="' + p.productUrl + '" target="_blank">详情</a>' +
+                    '</div></div>';
+            }
+        }
+        $('#productGrid').html(html);
+    }
+
+    function buildPlatformTags(product) {
+        if (!product.keywordAdded) {
+            return '';
+        }
+        var platformParts = [];
+        if (product.mercariKeywordCount > 0) {
+            platformParts.push('煤炉 ' + product.mercariKeywordCount);
+        }
+        if (product.rakutenKeywordCount > 0) {
+            platformParts.push('乐天 ' + product.rakutenKeywordCount);
+        }
+        if (product.yahooKeywordCount > 0) {
+            platformParts.push('雅虎 ' + product.yahooKeywordCount);
+        }
+        var html = '';
+        if (platformParts.length > 0) {
+            html += '<div class="platform-tags">已加入：' + escapeHtml(platformParts.join(' · ')) + '</div>';
+        }
+        if (product.addedKeywords && product.addedKeywords.length > 0) {
+            html += '<div class="added-keywords">关键字：' + escapeHtml(product.addedKeywords.join('、')) + '</div>';
+        }
+        return html;
+    }
+
+    function renderPager(res) {
+        totalPages = res.totalPages || 1;
+        if (totalPages <= 1) {
+            $('#pager').html('');
+            return;
+        }
+        var html = '';
+        if (currentPage > 1) {
+            html += '<button class="layui-btn layui-btn-sm" onclick="doSearch(' + (currentPage - 1) + ')">上一页</button> ';
+        }
+        html += '<span style="margin:0 10px;">' + currentPage + ' / ' + totalPages + '</span>';
+        if (currentPage < totalPages) {
+            html += '<button class="layui-btn layui-btn-sm" onclick="doSearch(' + (currentPage + 1) + ')">下一页</button>';
+        }
+        $('#pager').html(html);
+    }
+
+    function toggleSelect(productId) {
+        if (selectedProducts[productId]) {
+            delete selectedProducts[productId];
+        } else {
+            selectedProducts[productId] = productCache[productId];
+        }
+        updateCardSelection(productId);
+    }
+
+    function updateCardSelection(productId) {
+        var card = $('.product-card[data-id="' + productId + '"]');
+        if (selectedProducts[productId]) {
+            card.addClass('selected');
+        } else {
+            card.removeClass('selected');
+        }
+    }
+
+    function openAddFormById(productId) {
+        var product = productCache[productId];
+        if (product) {
+            openAddForm(product);
+        }
+    }
+
+    function openCosme() {
+        var kw = $('#searchKeyword').val().trim();
+        var url = 'https://cosmeet.cosme.net/product/search?fw=' + encodeURIComponent(kw);
+        if (currentCategoryId) {
+            url = 'https://cosmeet.cosme.net/product/search/srt/4/fw/' + encodeURIComponent(kw) + '/itm/' + currentCategoryId;
+        }
+        window.open(url, '_blank');
+    }
+
+    function batchAdd() {
+        var ids = Object.keys(selectedProducts);
+        if (ids.length === 0) {
+            layer.msg('请先选中产品');
+            return;
+        }
+        var first = selectedProducts[ids[0]];
+        openAddForm(first);
+    }
+
+    function openAddForm(product) {
+        addingProduct = product;
+        $.get('/cosme/suggestBrand', {cosmeBrand: product.brand, searchKeyword: currentKeyword}, function (brandRes) {
+            var brand = brandRes.brand || currentKeyword;
+            var categoryHtml = buildCategoryCheckboxes(['HUAZHUANGPIN']);
+            var priceHint = product.price ? '@cosme 参考价：' + product.price : '';
+            var existingKeywords = product.addedKeywords || [];
+            var keywordValue = existingKeywords.length > 0 ? '' : product.name;
+            var keywordPlaceholder = existingKeywords.length > 0 ? ('如：' + product.name) : '输入煤炉/乐天/雅虎搜索关键字';
+            var keywordHint = existingKeywords.length > 0
+                ? ('已有关键字：' + existingKeywords.join('、') + '。请填写新的关键字继续添加。')
+                : '同一 @cosme 产品可添加多个不同关键字；仅关键字完全重复时会更新已有记录。';
+            var formHtml = '<div class="add-keyword-form">' +
+                '<div class="form-section"><div class="form-section-title">搜索关键字（日文品名，可编辑）</div>' +
+                '<input id="f_keyword" class="layui-input" value="' + escapeAttr(keywordValue) + '" placeholder="' + escapeAttr(keywordPlaceholder) + '">' +
+                '<div style="margin-top:6px;color:#999;font-size:12px;">' + escapeHtml(keywordHint) + '</div></div>' +
+                '<div class="form-section"><div class="form-section-title">中文说明</div>' +
+                '<input id="f_description" class="layui-input" placeholder="如：高光、口红"></div>' +
+                '<div class="form-section"><div class="form-section-title">品牌分组</div>' +
+                '<input id="f_brand" class="layui-input" value="' + escapeAttr(brand) + '"></div>' +
+                '<div class="form-section"><div class="form-section-title">搜索间隔（分钟）</div>' +
+                '<input id="f_duration" type="number" class="layui-input" value="120" min="1"></div>' +
+                '<div class="form-section"><div class="form-section-title">搜索平台</div>' +
+                '<label><input type="checkbox" id="f_mercari" checked> 煤炉</label>&nbsp;&nbsp;' +
+                '<label><input type="checkbox" id="f_rakuten" checked> 乐天</label>&nbsp;&nbsp;' +
+                '<label><input type="checkbox" id="f_yahoo" checked> 雅虎</label></div>' +
+                '<div class="form-section"><div class="form-section-title">煤炉搜索类别</div><div class="category-group">' + categoryHtml + '</div></div>' +
+                '<div class="form-section"><div class="form-section-title">煤炉商品状态</div>' +
+                '<label><input type="checkbox" class="f_condition" value="QUANXIN" checked> 全新</label>&nbsp;&nbsp;' +
+                '<label><input type="checkbox" class="f_condition" value="JINQUANXIN" checked> 接近全新</label></div>' +
+                '<div class="form-section"><div class="form-section-title">爬虫价格区间（日元，可选）</div>' +
+                '<div style="display:flex;gap:8px;align-items:center;">' +
+                '<input id="f_price_min" type="number" class="layui-input" placeholder="下限 price_min" min="1" style="flex:1;">' +
+                '<span>~</span>' +
+                '<input id="f_price_max" type="number" class="layui-input" placeholder="上限 price_max" min="1" style="flex:1;">' +
+                '</div>' +
+                (priceHint ? '<div style="margin-top:6px;color:#999;font-size:12px;">' + escapeHtml(priceHint) + '（写入已勾选平台关键字表）</div>' : '') +
+                '</div>' +
+                '<div class="form-section"><div class="form-section-title">乐天类别 ID（可选）</div>' +
+                '<input id="f_rakuten_cat" class="layui-input" placeholder="如 424"></div>' +
+                '<div class="form-section"><div class="form-section-title">雅虎类别 ID（可选）</div>' +
+                '<input id="f_yahoo_cat" class="layui-input" placeholder="如 42180"></div>' +
+                '<div class="form-section"><div class="form-section-title">排除关键字（逗号分隔，可选）</div>' +
+                '<input id="f_exclude" class="layui-input" placeholder="レフィル,パフ"></div>' +
+                '</div>';
+
+            layer.open({
+                type: 1,
+                title: '添加搜索关键字',
+                area: ['520px', '80%'],
+                content: formHtml,
+                btn: ['确认添加', '取消'],
+                yes: function (index) {
+                    submitAdd(index);
+                }
+            });
+        });
+    }
+
+    function buildCategoryCheckboxes(checked) {
+        var html = '';
+        for (var i = 0; i < MERCARI_CATEGORIES.length; i++) {
+            var c = MERCARI_CATEGORIES[i];
+            var isChecked = checked.indexOf(c.code) >= 0 ? ' checked' : '';
+            html += '<label><input type="checkbox" class="f_category" value="' + c.code + '"' + isChecked + '> ' + c.label + '</label>';
+        }
+        return html;
+    }
+
+    function parsePriceInput(selector) {
+        var raw = $(selector).val();
+        if (raw === '' || raw == null) {
+            return null;
+        }
+        var value = parseInt(raw, 10);
+        return isNaN(value) || value <= 0 ? null : value;
+    }
+
+    function submitAdd(layerIndex) {
+        var categories = [];
+        $('.f_category:checked').each(function () { categories.push($(this).val()); });
+        var conditions = [];
+        $('.f_condition:checked').each(function () { conditions.push($(this).val()); });
+
+        var priceMin = parsePriceInput('#f_price_min');
+        var priceMax = parsePriceInput('#f_price_max');
+        if (priceMin != null && priceMax != null && priceMin > priceMax) {
+            layer.msg('价格下限不能大于上限');
+            return;
+        }
+
+        var payload = {
+            keyword: $('#f_keyword').val().trim(),
+            description: $('#f_description').val().trim(),
+            brand: $('#f_brand').val().trim(),
+            duration: parseInt($('#f_duration').val(), 10) || 120,
+            priceMin: priceMin,
+            priceMax: priceMax,
+            mercari: $('#f_mercari').is(':checked'),
+            rakuten: $('#f_rakuten').is(':checked'),
+            yahoo: $('#f_yahoo').is(':checked'),
+            mercariCategories: categories,
+            mercariConditions: conditions,
+            rakutenSearchCategory: $('#f_rakuten_cat').val().trim() || null,
+            rakutenMaxPageNum: 3,
+            rakutenStatus: 'new',
+            yahooSearchCategory: $('#f_yahoo_cat').val().trim() || null,
+            yahooPageSize: 100,
+            excludeKeyword: $('#f_exclude').val().trim() || null,
+            cosmeProductId: addingProduct ? addingProduct.productId : null,
+            cosmeProductUrl: addingProduct ? addingProduct.productUrl : null,
+            cosmeProductName: addingProduct ? addingProduct.name : null,
+            cosmeProductImage: addingProduct ? addingProduct.imageUrl : null
+        };
+
+        if (!payload.keyword) {
+            layer.msg('关键字不能为空');
+            return;
+        }
+
+        $.ajax({
+            url: '/cosme/addCondition',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+                if (res.success) {
+                    var msg = res.message;
+                    if (res.warnings && res.warnings.length) {
+                        msg += '（' + res.warnings.join('；') + '）';
+                    }
+                    layer.msg(msg, {time: 3000});
+                    layer.close(layerIndex);
+                    addingProduct = null;
+                    doSearch(currentPage);
+                } else {
+                    layer.msg(res.message || '添加失败');
+                }
+            },
+            error: function () {
+                layer.msg('请求失败');
+            }
+        });
+    }
+
+    function matchBrandByKeyword(keyword) {
+        if (!brandList || !keyword) {
+            return '';
+        }
+        var trimmed = keyword.trim();
+        for (var i = 0; i < brandList.length; i++) {
+            var b = brandList[i];
+            if (b.cosmeKeyword === trimmed || b.nameEn === trimmed || b.nameJa === trimmed) {
+                return b.nameEn;
+            }
+        }
+        return '';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(text) {
+        if (!text) return '';
+        return text.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+</script>
+</body>
+</html>

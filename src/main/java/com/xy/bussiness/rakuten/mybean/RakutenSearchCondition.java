@@ -23,4 +23,8 @@ public class RakutenSearchCondition {
     private Integer maxPageNum;
     private String status;
     private String excludeKeyword;
+    private String cosmeProductId;
+    private String cosmeProductUrl;
+    private String cosmeProductName;
+    private String cosmeProductImage;
 }

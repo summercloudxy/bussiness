@@ -286,7 +286,7 @@ INSERT INTO `mercari_search_condition` VALUES (275, 'ルミエールスクルテ
 INSERT INTO `mercari_search_condition` VALUES (276, 'ミラノコレクション 2000', NULL, '2000', 'HUAZHUANGPIN', NULL, NULL, 30, NULL, NULL, 1, 'kanebo', 'QUANXIN,JINQUANXIN', NULL);
 INSERT INTO `mercari_search_condition` VALUES (278, 'GUERLAIN ブラッシュ エクラ', NULL, '齿轮腮红', NULL, NULL, NULL, 10, NULL, NULL, 1, 'guerlain', 'QUANXIN,JINQUANXIN', NULL);
 INSERT INTO `mercari_search_condition` VALUES (279, 'guerlain', NULL, '腮红粉饼', 'XIANGFEN,LIANJIA,LIANSE', NULL, NULL, 30, NULL, NULL, 1, 'guerlain', 'QUANXIN,JINQUANXIN', NULL);
-INSERT INTO `mercari_search_condition` VALUES (280, 'エフェクト ヌード ハイライト パレット', NULL, '生姜高光', NULL, NULL, NULL, 30, NULL, NULL, 1, 'amarni', 'QUANXIN,JINQUANXIN', NULL);
+INSERT INTO `mercari_search_condition` VALUES (280, 'エフェクト ヌード ハイライト パレット', NULL, '生姜高光', NULL, NULL, NULL, 30, NULL, NULL, 1, 'armani', 'QUANXIN,JINQUANXIN', NULL);
 INSERT INTO `mercari_search_condition` VALUES (281, 'クルーエル ガーデニア パウダー', NULL, '花朵高光', NULL, NULL, NULL, 30, NULL, NULL, 1, 'guerlain', 'QUANXIN,JINQUANXIN', NULL);
 INSERT INTO `mercari_search_condition` VALUES (282, 'ゲラン プードル ドゥ ソワ', NULL, '风车高光', NULL, NULL, NULL, 30, NULL, NULL, 1, 'guerlain', 'QUANXIN,JINQUANXIN', NULL);
 INSERT INTO `mercari_search_condition` VALUES (283, 'メテオリット プードル ペルル', NULL, '珠珠高光', NULL, NULL, NULL, 30, NULL, NULL, 1, 'guerlain', 'QUANXIN,JINQUANXIN', NULL);

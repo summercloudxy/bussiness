@@ -31,4 +31,8 @@ public class MercariSearchCondition {
     private String excludeKeyword;
     @TableField(exist = false)
     private List<String> excludeKeywordList = new ArrayList<>();
+    private String cosmeProductId;
+    private String cosmeProductUrl;
+    private String cosmeProductName;
+    private String cosmeProductImage;
 }

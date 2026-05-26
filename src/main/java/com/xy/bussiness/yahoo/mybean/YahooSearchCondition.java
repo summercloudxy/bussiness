@@ -22,5 +22,9 @@ public class YahooSearchCondition {
     private String searchUrl;
     private Integer pageSize;
     private String excludeKeyword;
+    private String cosmeProductId;
+    private String cosmeProductUrl;
+    private String cosmeProductName;
+    private String cosmeProductImage;
 
 }
