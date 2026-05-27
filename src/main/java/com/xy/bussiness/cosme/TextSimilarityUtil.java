@@ -16,6 +16,17 @@ final class TextSimilarityUtil {
                 .trim();
     }
 
+    /** Cosme / 煤炉搜索用：统一横线、去首尾空白 */
+    static String normalizeCosmeSearchKeyword(String keyword) {
+        if (keyword == null) {
+            return "";
+        }
+        String k = normalize(keyword);
+        return k.replace('\u2015', '\u30FC')
+                .replace('\u2014', '\u30FC')
+                .replace('\uFF0D', '\u30FC');
+    }
+
     static String removeSpaces(String text) {
         if (text == null) {
             return "";

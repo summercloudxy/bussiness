@@ -6,6 +6,7 @@ import lombok.Data;
 class CosmeMatchTarget {
     private Integer id;
     private String keyword;
+    private String enKeyword;
     private String description;
     private String brand;
 }

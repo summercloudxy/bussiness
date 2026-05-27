@@ -8,14 +8,26 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.MercariCrawler;
 import com.xy.bussiness.mercari.apibean.ItemData;
 import com.xy.bussiness.mercari.apibean.ItemsItem;
+import com.xy.bussiness.mercari.dto.MercariItemThumb;
+import com.xy.bussiness.mercari.dto.MercariSearchConditionView;
+import com.xy.bussiness.mercari.dto.PageResult;
+import com.xy.bussiness.mercari.mapper.MercariMapper;
 import com.xy.bussiness.mercari.mybatisservice.MercariItemRecordService;
 import com.xy.bussiness.mercari.mybatisservice.MercariSearchConditionService;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
 import com.xy.bussiness.mercari.service.MercariSearchService;
+import com.xy.bussiness.cosme.CosmeKeywordMatchService;
+import com.xy.bussiness.cosme.CosmeMatchPlatform;
+import com.xy.bussiness.cosme.dto.ConfirmCosmeMatchRequest;
+import com.xy.bussiness.cosme.dto.CosmeMatchItemResult;
+import com.xy.bussiness.cosme.dto.CosmeMatchRunResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
@@ -36,6 +48,13 @@ public class MercariRestController {
     private MercariSearchService mercariSearchService;
     @Autowired
     private MercariPageController mercariPageController;
+    @Autowired
+    private MercariMapper mercariMapper;
+    @Autowired
+    private CosmeKeywordMatchService cosmeKeywordMatchService;
+
+    private static final int LATEST_ITEM_LIMIT = 5;
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
 
     @GetMapping("/mercari/searchCondition")
@@ -47,6 +66,100 @@ public class MercariRestController {
         wrapper.eq(MercariSearchCondition::getBrand, brand);
         List<MercariSearchCondition> list = mercariSearchConditionService.list(wrapper);
         return conditionDetail(list);
+    }
+
+    @GetMapping("/mercari/searchCondition/page")
+    public PageResult<MercariSearchConditionView> getSearchConditionPage(String brand,
+                                                                         Boolean enable,
+                                                                         @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") long page,
+                                                                         @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") long pageSize) {
+        if (page < 1) {
+            page = 1;
+        }
+        if (pageSize < 1 || pageSize > 100) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        LambdaQueryWrapper<MercariSearchCondition> countWrapper = buildSearchConditionWrapper(brand, enable);
+        long total = mercariSearchConditionService.count(countWrapper);
+
+        long offset = (page - 1) * pageSize;
+        LambdaQueryWrapper<MercariSearchCondition> listWrapper = buildSearchConditionWrapper(brand, enable);
+        listWrapper.orderByDesc(MercariSearchCondition::getId);
+        listWrapper.last("LIMIT " + offset + "," + pageSize);
+        List<MercariSearchCondition> records = mercariSearchConditionService.list(listWrapper);
+
+        records = conditionDetail(records);
+        List<Integer> conditionIds = records.stream().map(MercariSearchCondition::getId).collect(Collectors.toList());
+        Map<Integer, List<MercariItemThumb>> latestItemsMap = loadLatestItems(conditionIds);
+        List<MercariSearchConditionView> views = records.stream().map(condition -> {
+            MercariSearchConditionView view = new MercariSearchConditionView();
+            copyConditionFields(condition, view);
+            view.setLatestItems(latestItemsMap.getOrDefault(condition.getId(), Collections.emptyList()));
+            return view;
+        }).collect(Collectors.toList());
+        PageResult<MercariSearchConditionView> result = new PageResult<>();
+        result.setTotal(total);
+        result.setPage(page);
+        result.setPageSize(pageSize);
+        result.setRecords(views);
+        return result;
+    }
+
+    private LambdaQueryWrapper<MercariSearchCondition> buildSearchConditionWrapper(String brand, Boolean enable) {
+        LambdaQueryWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaQuery();
+        if (StringUtils.isNotBlank(brand) && !"全部".equals(brand)) {
+            wrapper.eq(MercariSearchCondition::getBrand, brand);
+        }
+        if (enable != null) {
+            wrapper.eq(MercariSearchCondition::isEnable, enable);
+        }
+        return wrapper;
+    }
+
+    private Map<Integer, List<MercariItemThumb>> loadLatestItems(List<Integer> conditionIds) {
+        if (CollectionUtils.isEmpty(conditionIds)) {
+            return Collections.emptyMap();
+        }
+        List<ItemRecord> items = mercariMapper.getLatestItemsByConditionIds(conditionIds, LATEST_ITEM_LIMIT);
+        if (CollectionUtils.isEmpty(items)) {
+            return Collections.emptyMap();
+        }
+        return items.stream().collect(Collectors.groupingBy(
+                ItemRecord::getSearchConditionId,
+                Collectors.mapping(this::toItemThumb, Collectors.toList())
+        ));
+    }
+
+    private MercariItemThumb toItemThumb(ItemRecord itemRecord) {
+        MercariItemThumb thumb = new MercariItemThumb();
+        thumb.setMercariItemId(itemRecord.getMercariItemId());
+        thumb.setMercariItemTitle(itemRecord.getMercariItemTitle());
+        thumb.setImageUrl(MercariItemThumb.buildImageUrl(itemRecord));
+        return thumb;
+    }
+
+    private void copyConditionFields(MercariSearchCondition source, MercariSearchConditionView target) {
+        target.setId(source.getId());
+        target.setKeyword(source.getKeyword());
+        target.setEnKeyword(source.getEnKeyword());
+        target.setDescription(source.getDescription());
+        target.setSearchCategory(source.getSearchCategory());
+        target.setPriceMax(source.getPriceMax());
+        target.setPriceMin(source.getPriceMin());
+        target.setDuration(source.getDuration());
+        target.setStartTime(source.getStartTime());
+        target.setEndTime(source.getEndTime());
+        target.setBrand(source.getBrand());
+        target.setEnable(source.isEnable());
+        target.setItemCondition(source.getItemCondition());
+        target.setConditionList(source.getConditionList());
+        target.setCategoryList(source.getCategoryList());
+        target.setExcludeKeyword(source.getExcludeKeyword());
+        target.setExcludeKeywordList(source.getExcludeKeywordList());
+        target.setCosmeProductId(source.getCosmeProductId());
+        target.setCosmeProductUrl(source.getCosmeProductUrl());
+        target.setCosmeProductName(source.getCosmeProductName());
+        target.setCosmeProductImage(source.getCosmeProductImage());
     }
 
 
@@ -227,6 +340,62 @@ public class MercariRestController {
         wrapper.set(MercariSearchCondition::getSearchCategory, updateCondition);
         wrapper.eq(MercariSearchCondition::getId, id);
         mercariSearchConditionService.update(wrapper);
+    }
+
+    @GetMapping("/mercari/updatePrice")
+    public String updatePrice(@RequestParam String id,
+                              @RequestParam(required = false) String priceMin,
+                              @RequestParam(required = false) String priceMax) {
+        Integer min = parsePriceParam(priceMin);
+        Integer max = parsePriceParam(priceMax);
+        if (min != null && max != null && min > max) {
+            return "下限不能大于上限";
+        }
+        LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
+        wrapper.set(MercariSearchCondition::getPriceMin, min);
+        wrapper.set(MercariSearchCondition::getPriceMax, max);
+        wrapper.eq(MercariSearchCondition::getId, id);
+        mercariSearchConditionService.update(wrapper);
+        return "价格区间已保存";
+    }
+
+    private Integer parsePriceParam(String value) {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        try {
+            int price = Integer.parseInt(value.trim());
+            return price > 0 ? price : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    @PostMapping("/mercari/cosmeMatch/run")
+    public CosmeMatchRunResult runCosmeMatch(@RequestParam(required = false) String brand,
+                                             @RequestParam(defaultValue = "true") boolean onlyMissing,
+                                             @RequestParam(defaultValue = "30") int limit) {
+        return cosmeKeywordMatchService.runMatch(CosmeMatchPlatform.MERCARI, brand, onlyMissing, limit);
+    }
+
+    @PostMapping("/mercari/cosmeMatch/matchOne")
+    public CosmeMatchItemResult matchCosmeOne(@RequestParam Integer conditionId) {
+        return cosmeKeywordMatchService.matchOne(CosmeMatchPlatform.MERCARI, conditionId, true);
+    }
+
+    @PostMapping("/mercari/cosmeMatch/confirm")
+    public String confirmCosmeMatch(@RequestBody ConfirmCosmeMatchRequest request) {
+        return cosmeKeywordMatchService.confirmMatch(CosmeMatchPlatform.MERCARI, request);
+    }
+
+    @PostMapping("/mercari/cosmeMatch/skip")
+    public String skipCosmeMatch(@RequestParam Integer conditionId) {
+        return cosmeKeywordMatchService.skipMatch(CosmeMatchPlatform.MERCARI, conditionId);
+    }
+
+    @PostMapping("/mercari/cosmeMatch/reset")
+    public String resetCosmeMatch(@RequestParam Integer conditionId) {
+        return cosmeKeywordMatchService.resetMatch(CosmeMatchPlatform.MERCARI, conditionId);
     }
 
 

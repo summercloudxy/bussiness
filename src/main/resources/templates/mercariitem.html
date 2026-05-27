@@ -1,106 +1,374 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <script type="text/javascript" src="/layui/layui.js" charset="utf-8"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">已关注产品</title>
+    <link rel="stylesheet" th:href="@{/css/platform-common.css}">
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
-
-
-    <script type="text/javascript">
-        function clicksale(e) {
-
-            var brand = e.getAttribute("brand");
-            var conditionId = e.getAttribute("conditionId");
-            $.ajax({
-                url: '/mercari/item/interest?brand=' + brand + '&conditionId=' + conditionId + '&saleStatus=' + e.checked,
-                type: 'get',
-                dataType: 'json',
-                async: false,
-                // data : {'userName':userName},
-                success: function (itemList) {
-
-
-                    $("#itemTableBody").html('')
-                    for (var i in itemList) {
-                        $("#itemTableBody").append(
-                            "<tr><td>" + i +
-                            "</td><td>" + itemList[i].mercariItemId +
-                            "</td><td><a href='https://jp.mercari.com/item/" + itemList[i].mercariItemId + "' target='_blank'>" + itemList[i].mercariItemTitle + "</a>" +
-
-                            "</td><td><img src='http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/" + itemList[i].mercariItemId+ "_1.jpg'>" +
-                            "</td><td>" + itemList[i].originPrice +
-                            "</td><td>" + itemList[i].currentPrice +
-                            "</td><td><a className='btn btn-sm btn-primary' href='@{https://meilu.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>手机</a>" +
-                            "<a className='btn btn-sm btn-primary' href='@{https://meilu.jpshuntong.com/item/" +  itemList[i].mercariItemId + "target='_blank'>电脑</a>" +
-
-                            "</td><td><a className='btn btn-sm btn-primary' href='@{/mercari/setInterest?interest=0&itemId="+itemList[i].mercariItemId +
-                            " target='_blank'>不再关注</a>"+
-                            "</td><td>"+itemList[i].soldStatus +
-                            "</td>"
-
-                        )
-                    }
-
-                }
-            });
-
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --card-bg: #fff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --radius: 10px;
         }
 
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        .page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .back-link:hover {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .item-count {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .item-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-card-body {
+            display: flex;
+            gap: 12px;
+            padding: 14px;
+            flex: 1;
+        }
+
+        .item-thumb {
+            flex-shrink: 0;
+        }
+
+        .item-thumb img {
+            width: 88px;
+            height: 88px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 8px;
+            word-break: break-word;
+        }
+
+        .item-title a {
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .item-title a:hover {
+            color: var(--primary);
+        }
+
+        .item-id {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .price-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            font-size: 13px;
+        }
+
+        .price-label {
+            color: var(--muted);
+        }
+
+        .price-current {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .price-drop {
+            color: var(--success);
+        }
+
+        .status-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: #f3f4f6;
+            color: var(--muted);
+        }
+
+        .status-badge.on-sale {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .item-card-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 14px 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--bg);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-muted {
+            color: var(--muted);
+        }
+
+        .btn-danger {
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: 60px 16px;
+            color: var(--muted);
+            background: var(--card-bg);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            grid-column: 1 / -1;
+        }
+    </style>
+    <script th:inline="javascript">
+        var pageBrand = /*[[${brand}]]*/ 'empty';
+        var pageConditionId = /*[[${conditionId}]]*/ 'empty';
+
+        function escapeHtml(text) {
+            if (text == null) {
+                return '';
+            }
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function imageUrl(itemId) {
+            return 'https://static.mercdn.net/c!/w=240,f=webp/thumb/photos/' + itemId + '_1.jpg';
+        }
+
+        function formatStatus(status) {
+            if (!status || status === 'on_sale') {
+                return {text: '在售', cls: 'on-sale'};
+            }
+            return {text: status, cls: ''};
+        }
+
+        function renderItemCard(item, index) {
+            var status = formatStatus(item.soldStatus);
+            var priceClass = item.originPrice > item.currentPrice ? ' price-drop' : '';
+            return '<div class="item-card">' +
+                '<div class="item-card-body">' +
+                '<div class="item-thumb">' +
+                '<a href="https://jp.mercari.com/item/' + escapeHtml(item.mercariItemId) + '" target="_blank">' +
+                '<img referrerpolicy="no-referrer" src="' + imageUrl(item.mercariItemId) + '" alt="">' +
+                '</a></div>' +
+                '<div class="item-info">' +
+                '<p class="item-title"><a href="https://jp.mercari.com/item/' + escapeHtml(item.mercariItemId) + '" target="_blank">' +
+                escapeHtml(item.mercariItemTitle) + '</a></p>' +
+                '<div class="item-id">#' + (index + 1) + ' · ' + escapeHtml(item.mercariItemId) + '</div>' +
+                '<div class="price-row">' +
+                '<span><span class="price-label">原价 </span>' + (item.originPrice != null ? item.originPrice : '-') + '</span>' +
+                '<span><span class="price-label">现价 </span><span class="price-current' + priceClass + '">' +
+                (item.currentPrice != null ? item.currentPrice : '-') + '</span></span>' +
+                '</div>' +
+                '<span class="status-badge ' + status.cls + '">' + escapeHtml(status.text) + '</span>' +
+                '</div></div>' +
+                '<div class="item-card-footer">' +
+                '<a class="btn btn-primary" href="https://meilu.jpshuntong.com/item/' + escapeHtml(item.mercariItemId) + '" target="_blank">顺通购买</a>' +
+                '<a class="btn btn-muted" href="https://rakuten.jpdeliver.net/mercari/mobile/mercari_detail.php?item_id=' + escapeHtml(item.mercariItemId) + '" target="_blank">jpDeliver</a>' +
+                '<a class="btn btn-danger" href="/mercari/setInterest?interest=0&itemId=' + escapeHtml(item.mercariItemId) + '" target="_blank">不再关注</a>' +
+                '</div></div>';
+        }
+
+        function renderItemList(itemList) {
+            if (!itemList || itemList.length === 0) {
+                $('#itemList').html('<div class="empty-list">暂无已关注产品</div>');
+                $('#itemCount').text('共 0 件');
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < itemList.length; i++) {
+                html += renderItemCard(itemList[i], i);
+            }
+            $('#itemList').html(html);
+            $('#itemCount').text('共 ' + itemList.length + ' 件');
+        }
+
+        function clicksale(e) {
+            $.ajax({
+                url: '/mercari/item/interest',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    brand: pageBrand,
+                    conditionId: pageConditionId,
+                    saleStatus: e.checked
+                },
+                success: function (itemList) {
+                    renderItemList(itemList);
+                }
+            });
+        }
+
+        $(function () {
+            var initialItems = /*[[${itemList}]]*/ [];
+            renderItemList(initialItems);
+        });
     </script>
 </head>
-<body style="zoom: 2">
-<!--th:text 为 Thymeleaf 属性，用于在展示文本-->
-<h1 th:text="煤炉助手">欢迎您访问静态页面 HTML</h1>
+<body>
+<div class="page">
+    <nav class="platform-nav">
+        <a href="/mercari" class="active">煤炉</a>
+        <a href="/yahoo">雅虎</a>
+        <a href="/rakuten">乐天</a>
+        <a href="/cosme" target="_blank">@cosme</a>
+    </nav>
+    <div class="page-header">
+        <h1 th:text="${pageTitle}">已关注产品</h1>
+        <a class="back-link" href="/mercari">← 返回关键字管理</a>
+    </div>
 
-<!--<script type="text/javascript" src="/static/layui/layui.js" charset="utf-8"></script>-->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <label class="filter-check">
+                <input id="salebox" type="checkbox" th:attr="brand=${brand},conditionId=${conditionId}" onclick="clicksale(this)">
+                仅显示正在出售
+            </label>
+        </div>
+        <span class="item-count" id="itemCount" th:text="'共 ' + ${#lists.size(itemList)} + ' 件'">共 0 件</span>
+    </div>
 
-<div id="salechoose">
-    <input id="salebox" type="checkbox" name="正在出售" th:attr="brand=${brand},conditionId=${conditionId}" onclick="clicksale(this)">
-    正在出售
+    <div class="item-grid" id="itemList"></div>
 </div>
-
-<div class="table-responsive">
-    <table class="itemTable" id="itemTable" border='1'>
-        <thead>
-        <tr>
-            <th>序号</th>
-            <th>煤炉id</th>
-            <th>标题</th>
-            <th>图片</th>
-            <th>原始价格</th>
-            <th>当前价格</th>
-            <th>购买</th>
-            <th>不再关注</th>
-            <th>销售状态</th>
-        </tr>
-        </thead>
-        <tbody id="itemTableBody">
-
-        <tr th:each="item:${itemList}">
-            <td th:text="${itemStat.index}"></td>
-            <td th:text="${item.mercariItemId}"></td>
-            <td><a th:href="'https://jp.mercari.com/item/' + ${item.mercariItemId}" th:text="${item.mercariItemTitle}" target='_blank'></a></td>
-            <td><img th:src="'http://static.mercdn.net/c!/w=240,f=webp/thumb/photos/' + ${item.mercariItemId} + '_1.jpg'"></td>
-            <td th:text="${item.originPrice}"></td>
-            <td th:text="${item.currentPrice}"></td>
-            <td>
-                <a class="btn btn-sm btn-primary" th:href="@{https://meilu.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>手机</a>
-
-                <a class="btn btn-sm btn-primary" th:href="@{https://meilu.jpshuntong.com/item/}+${item.mercariItemId}"  target='_blank'>电脑</a>
-            </td>
-            <td>
-                <a class="btn btn-sm btn-primary" th:href="@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}"  target='_blank'>不再关注</a>
-                <!--                <button th:attr="del_uri=@{/mercari/setInterest?interest=0&itemId=}+${item.mercariItemId}" class="btn btn-sm btn-danger deleteBtn">不再关注-->
-                <!--                </button>-->
-            </td>
-            <td th:text="${item.soldStatus}"> </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-
-
 </body>
 </html>

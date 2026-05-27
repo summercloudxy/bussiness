@@ -28,9 +28,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,12 +57,11 @@ public class MercariSearchService {
     WindowsNotification windowsNotification;
     @Autowired
     NotificationService notificationService;
-    @Autowired
-    MercariItemRecordService mercariItemRecordService;
     @Value("${mercari.enable:true}")
     private Boolean mercariEnable;
 
     private LinkedBlockingQueue<MercariSearchCondition> queue = new LinkedBlockingQueue<>(1000);
+    private final Map<Integer, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
     private Date lastExecuteTime = new Date();
     ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
     ;
@@ -73,9 +75,7 @@ public class MercariSearchService {
             List<MercariSearchCondition> allSearchCondition = mercariSearchConditionService.list(eq);
             for (MercariSearchCondition searchCondition : allSearchCondition) {
                 if (searchCondition.isEnable()) {
-                    MercariTask mercariTask = new MercariTask(searchCondition, queue);
-                    log.info("添加查询定时任务，查询关键字为{}，查询间隔为{}分钟", searchCondition.getBrand() + searchCondition.getDescription(), searchCondition.getDuration());
-                    scheduledExecutorService.scheduleWithFixedDelay(mercariTask, 0, searchCondition.getDuration(), TimeUnit.MINUTES);
+                    scheduleSearchCondition(searchCondition);
                 }
             }
             new Thread(() -> execute()).start();
@@ -83,10 +83,181 @@ public class MercariSearchService {
     }
 
 
+    private void scheduleSearchCondition(MercariSearchCondition searchCondition) {
+        MercariTask mercariTask = new MercariTask(searchCondition, queue);
+        log.info("添加查询定时任务，查询关键字为{}，查询间隔为{}分钟",
+                searchCondition.getBrand() + searchCondition.getDescription(), searchCondition.getDuration());
+        ScheduledFuture<?> future = scheduledExecutorService.scheduleWithFixedDelay(
+                mercariTask, 0, searchCondition.getDuration(), TimeUnit.MINUTES);
+        scheduledTasks.put(searchCondition.getId(), future);
+    }
+
+    public String disableSearchCondition(Integer conditionId) {
+        if (conditionId == null) {
+            return "参数无效";
+        }
+        MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+        if (condition == null) {
+            return "关键字不存在";
+        }
+        if (!condition.isEnable()) {
+            return "该关键字已停止关注：" + condition.getDescription();
+        }
+        LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(MercariSearchCondition::getId, conditionId);
+        wrapper.set(MercariSearchCondition::isEnable, false);
+        mercariSearchConditionService.update(wrapper);
+        cancelScheduledTask(conditionId);
+        log.info("已停止关注煤炉关键字[{}]，enable=0，定时任务已取消", condition.getDescription());
+        return "已停止关注关键字：" + condition.getDescription();
+    }
+
+    public String enableSearchCondition(Integer conditionId) {
+        if (conditionId == null) {
+            return "参数无效";
+        }
+        MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+        if (condition == null) {
+            return "关键字不存在";
+        }
+        if (condition.isEnable()) {
+            return "该关键字已启用：" + condition.getDescription();
+        }
+        LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(MercariSearchCondition::getId, conditionId);
+        wrapper.set(MercariSearchCondition::isEnable, true);
+        mercariSearchConditionService.update(wrapper);
+        MercariSearchCondition updated = mercariSearchConditionService.getById(conditionId);
+        scheduleSearchCondition(updated);
+        log.info("已启用煤炉关键字[{}]，定时任务已添加", condition.getDescription());
+        return "已启用关键字：" + condition.getDescription();
+    }
+
+    public String deleteSearchCondition(Integer conditionId) {
+        if (conditionId == null) {
+            return "参数无效";
+        }
+        MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+        if (condition == null) {
+            return "关键字不存在";
+        }
+        cancelScheduledTask(conditionId);
+        LambdaQueryWrapper<ItemRecord> itemWrapper = Wrappers.lambdaQuery();
+        itemWrapper.eq(ItemRecord::getSearchConditionId, conditionId);
+        itemRecordService.remove(itemWrapper);
+        mercariSearchConditionService.removeById(conditionId);
+        log.info("已删除煤炉关键字[{}]", condition.getDescription());
+        return "已删除关键字：" + condition.getDescription();
+    }
+
+    public String updateSearchConditionDuration(Integer conditionId, Integer duration) {
+        if (conditionId == null) {
+            return "参数无效";
+        }
+        if (duration == null || duration < 1) {
+            return "查询间隔必须大于0分钟";
+        }
+        MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+        if (condition == null) {
+            return "关键字不存在";
+        }
+        LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(MercariSearchCondition::getId, conditionId);
+        wrapper.set(MercariSearchCondition::getDuration, duration);
+        mercariSearchConditionService.update(wrapper);
+        MercariSearchCondition updated = mercariSearchConditionService.getById(conditionId);
+        if (updated.isEnable()) {
+            cancelScheduledTask(conditionId);
+            scheduleSearchCondition(updated);
+        }
+        log.info("已更新煤炉关键字[{}]查询间隔为{}分钟", condition.getDescription(), duration);
+        return "已更新查询间隔为 " + duration + " 分钟";
+    }
+
+    private void cancelScheduledTask(Integer conditionId) {
+        ScheduledFuture<?> future = scheduledTasks.remove(conditionId);
+        if (future != null) {
+            future.cancel(false);
+        }
+    }
+
+    public MercariSearchCondition registerSearchCondition(MercariSearchCondition condition) {
+        mercariSearchConditionService.save(condition);
+        if (mercariEnable && condition.isEnable()) {
+            scheduleSearchCondition(condition);
+        }
+        return condition;
+    }
+
+    public String createSearchCondition(String brand, String description, String keyword,
+                                       String enKeyword, Integer duration, Boolean enable) {
+        if (StringUtils.isBlank(keyword)) {
+            return "日文关键字不能为空";
+        }
+        if (StringUtils.isBlank(brand)) {
+            return "品牌不能为空";
+        }
+        if (StringUtils.isBlank(description)) {
+            return "描述不能为空";
+        }
+        String trimmedKeyword = keyword.trim();
+        LambdaQueryWrapper<MercariSearchCondition> dupWrapper = Wrappers.lambdaQuery();
+        dupWrapper.eq(MercariSearchCondition::getKeyword, trimmedKeyword);
+        if (mercariSearchConditionService.count(dupWrapper) > 0) {
+            return "日文关键字已存在：" + trimmedKeyword;
+        }
+        MercariSearchCondition condition = new MercariSearchCondition();
+        condition.setKeyword(trimmedKeyword);
+        condition.setEnKeyword(StringUtils.isBlank(enKeyword) ? null : enKeyword.trim());
+        condition.setDescription(description.trim());
+        condition.setBrand(brand.trim());
+        condition.setDuration(duration != null && duration > 0 ? duration : 60);
+        condition.setEnable(enable != null && enable);
+        condition.setSearchCategory("HUAZHUANGPIN");
+        condition.setItemCondition("QUANXIN,JINQUANXIN");
+        registerSearchCondition(condition);
+        log.info("新增煤炉关键字[{}] brand={}", condition.getDescription(), condition.getBrand());
+        return "已新增关键字：" + condition.getDescription();
+    }
+
+    public String updateSearchConditionKeywords(Integer conditionId, String keyword, String enKeyword) {
+        if (conditionId == null) {
+            return "参数无效";
+        }
+        if (StringUtils.isBlank(keyword)) {
+            return "日文关键字不能为空";
+        }
+        MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+        if (condition == null) {
+            return "关键字不存在";
+        }
+        String trimmedKeyword = keyword.trim();
+        if (!trimmedKeyword.equals(condition.getKeyword())) {
+            LambdaQueryWrapper<MercariSearchCondition> dupWrapper = Wrappers.lambdaQuery();
+            dupWrapper.eq(MercariSearchCondition::getKeyword, trimmedKeyword);
+            dupWrapper.ne(MercariSearchCondition::getId, conditionId);
+            if (mercariSearchConditionService.count(dupWrapper) > 0) {
+                return "日文关键字已被其他记录使用：" + trimmedKeyword;
+            }
+        }
+        LambdaUpdateWrapper<MercariSearchCondition> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(MercariSearchCondition::getId, conditionId);
+        wrapper.set(MercariSearchCondition::getKeyword, trimmedKeyword);
+        wrapper.set(MercariSearchCondition::getEnKeyword, StringUtils.isBlank(enKeyword) ? null : enKeyword.trim());
+        mercariSearchConditionService.update(wrapper);
+        log.info("更新煤炉关键字[{}] 日文/英文", condition.getDescription());
+        return "已更新关键字：" + condition.getDescription();
+    }
+
+
     public void execute() {
         while (true) {
             try {
                 MercariSearchCondition poll = queue.take();
+                MercariSearchCondition current = mercariSearchConditionService.getById(poll.getId());
+                if (current == null || !current.isEnable()) {
+                    continue;
+                }
                 // 两次执行间隔要大于10s
                 long duration = new Date().getTime() - lastExecuteTime.getTime();
 //                if (duration <500L) {
@@ -95,7 +266,7 @@ public class MercariSearchService {
                 log.info("开始查询关键字[{}]的产品", poll.getDescription());
                 List<ItemsItem> crawl = null;
                 try {
-                    crawl = mercariCrawler.getMercariItemsByCondition(poll);
+                    crawl = mercariCrawler.getMercariItemsByCondition(current);
                 } catch (ResourceAccessException e) {
                     // 间隔较长的任务，失败了重试
                     if (poll.getDuration() > 10) {
@@ -104,7 +275,7 @@ public class MercariSearchService {
                 }
                 log.info("关键字[{}]搜索到[{}]条产品", poll.getDescription(), crawl == null ? -1 : crawl.size());
                 if (!CollectionUtils.isEmpty(crawl)) {
-                    check(poll, crawl);
+                    check(current, crawl);
                 }
                 lastExecuteTime = new Date();
             } catch (Exception e) {
@@ -197,8 +368,7 @@ public class MercariSearchService {
                 }
             }
         }
-        // 不关心的商品上新，直接保存
-        if (!CollectionUtils.isEmpty(excludeNewItems)){
+        if (!CollectionUtils.isEmpty(excludeNewItems)) {
             itemRecordService.saveBatch(excludeNewItems);
         }
     }

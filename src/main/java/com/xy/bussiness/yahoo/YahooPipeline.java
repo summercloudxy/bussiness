@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.NotificationLinks;
 import com.xy.bussiness.notification.wechat.NotifyImageUrls;
 import com.xy.bussiness.notification.wechat.WeChatPlatform;
 import com.xy.bussiness.notification.wechat.WeChatMarkdownLinks;
@@ -132,18 +133,18 @@ public class YahooPipeline implements Pipeline {
     public boolean sendNewMail(YahooSearchCondition searchCondition, List<YahooItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
         String topic = "雅虎:" + searchCondition.getBrand() + description + "上新啦";
-        return notifySender.send(topic, getNewContent(newItems), getNewWeChatContent(newItems),
+        return notifySender.send(topic, getNewContent(searchCondition, newItems), getNewWeChatContent(searchCondition, newItems),
                 buildYahooNewsArticles(newItems, true), WeChatPlatform.YAHOO, 0);
     }
 
     public boolean sendPriceMail(YahooSearchCondition searchCondition, List<YahooItemRecord> priceItems) throws Exception {
         String topic = "雅虎:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦";
-        return notifySender.send(topic, getPriceContent(priceItems), getPriceWeChatContent(priceItems),
+        return notifySender.send(topic, getPriceContent(searchCondition, priceItems), getPriceWeChatContent(searchCondition, priceItems),
                 buildYahooNewsArticles(priceItems, false), WeChatPlatform.YAHOO, 0);
     }
 
 
-    public String getNewContent(List<YahooItemRecord> recordList) {
+    public String getNewContent(YahooSearchCondition searchCondition, List<YahooItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (YahooItemRecord record : recordList) {
@@ -184,21 +185,22 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/yahoo/setInterest?interest=1&itemId=");
-            stringBuilder.append(record.getAuctionId());
-            stringBuilder.append("'>添加关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/yahoo/setInterest?interest=1&itemId=" + record.getAuctionId())).append("'>添加关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "yahoo",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
 
-    public String getPriceContent(List<YahooItemRecord> recordList) {
+    public String getPriceContent(YahooSearchCondition searchCondition, List<YahooItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (YahooItemRecord record : recordList) {
@@ -247,33 +249,38 @@ public class YahooPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/yahoo/setInterest?interest=0&itemId=");
-            stringBuilder.append(record.getAuctionId());
-            stringBuilder.append("'>不再关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/yahoo/setInterest?interest=0&itemId=" + record.getAuctionId())).append("'>不再关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "yahoo",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
-    private String getNewWeChatContent(List<YahooItemRecord> recordList) {
+    private String getNewWeChatContent(YahooSearchCondition searchCondition, List<YahooItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (YahooItemRecord record : recordList) {
             appendYahooItemMarkdown(sb, record, true);
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "yahoo",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
-    private String getPriceWeChatContent(List<YahooItemRecord> recordList) {
+    private String getPriceWeChatContent(YahooSearchCondition searchCondition, List<YahooItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (YahooItemRecord record : recordList) {
             appendYahooItemMarkdown(sb, record, false);
             sb.append("- 价格：").append(record.getOriginPrice()).append(" → ").append(record.getAuctionPrice()).append("\n\n");
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "yahoo",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
@@ -290,8 +297,8 @@ public class YahooPipeline implements Pipeline {
         WeChatMarkdownLinks.appendThreeLinks(sb,
                 yahooItemUrl(record),
                 shuntongUrl(record) + record.getAuctionId(),
-                "https://" + notifyHost + "/yahoo/setInterest?interest=" + interest
-                        + "&itemId=" + record.getAuctionId(),
+                NotificationLinks.url(notifyHost, "/yahoo/setInterest?interest=" + interest
+                        + "&itemId=" + record.getAuctionId()),
                 interestLabel);
         sb.append("\n");
     }

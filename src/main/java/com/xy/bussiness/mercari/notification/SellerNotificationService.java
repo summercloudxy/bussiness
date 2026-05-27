@@ -6,6 +6,7 @@ import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
 import com.xy.bussiness.mercari.mybean.MercariSellerSearchCondition;
 import com.xy.bussiness.mercari.mybean.SellerItemRecord;
 import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.NotificationLinks;
 import com.xy.bussiness.notification.WindowsNotification;
 import com.xy.bussiness.notification.wechat.NotifyImageUrls;
 import com.xy.bussiness.notification.wechat.WeChatPlatform;
@@ -93,9 +94,8 @@ public class SellerNotificationService {
 
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/seller/setInterest?interest=1&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>添加关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/mercari/seller/setInterest?interest=1&itemId=" + record.getMercariItemId())).append("'>添加关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
@@ -137,9 +137,8 @@ public class SellerNotificationService {
 
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/seller/setInterest?interest=0&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>不再关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/mercari/seller/setInterest?interest=0&itemId=" + record.getMercariItemId())).append("'>不再关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
@@ -177,8 +176,8 @@ public class SellerNotificationService {
         WeChatMarkdownLinks.appendThreeLinks(sb,
                 "https://jp.mercari.com/item/" + record.getMercariItemId(),
                 SHUNTONG_MEILU_URL + record.getMercariItemId(),
-                "https://" + notifyHost + "/mercari/seller/setInterest?interest=" + interest
-                        + "&itemId=" + record.getMercariItemId(),
+                NotificationLinks.url(notifyHost, "/mercari/seller/setInterest?interest=" + interest
+                        + "&itemId=" + record.getMercariItemId()),
                 interestLabel);
         sb.append("\n");
     }

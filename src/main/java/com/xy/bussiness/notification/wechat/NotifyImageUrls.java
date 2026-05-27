@@ -22,6 +22,23 @@ public final class NotifyImageUrls {
         return MERCARI_THUMB_WEBP + mercariItemId + "_1.jpg";
     }
 
+    /**
+     * 管理页/邮件 HTML 展示用缩略图，规则与 NotificationService 邮件正文一致。
+     */
+    public static String resolveMercariHtmlImageUrl(String mercariItemId, String itemType, String imageUrl) {
+        if ("ITEM_TYPE_MERCARI".equalsIgnoreCase(itemType) || !StringUtils.hasText(itemType)) {
+            return mercariThumbUrl(mercariItemId);
+        }
+        String normalized = normalizePicUrl(imageUrl);
+        if (normalized != null) {
+            return normalized;
+        }
+        if (StringUtils.hasText(mercariItemId)) {
+            return mercariThumbUrl(mercariItemId);
+        }
+        return null;
+    }
+
     public static String mercariThumbUrlForWeChat(String mercariItemId) {
         return MERCARI_THUMB_JPG + mercariItemId + "_1.jpg";
     }

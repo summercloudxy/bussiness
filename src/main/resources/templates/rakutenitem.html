@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">乐天已关注产品</title>
+    <link rel="stylesheet" th:href="@{/css/platform-common.css}">
+    <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --card-bg: #fff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --radius: 10px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .page { max-width: 1280px; margin: 0 auto; padding: 20px 16px 40px; }
+        .page-header {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            gap: 12px; margin-bottom: 16px;
+        }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px; color: var(--primary);
+            text-decoration: none; font-size: 14px; padding: 8px 14px;
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+        }
+        .back-link:hover { background: #eff6ff; border-color: #bfdbfe; }
+        .toolbar {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            gap: 12px; background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+        }
+        .item-count { font-size: 14px; color: var(--muted); }
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .item-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column;
+        }
+        .item-card-body { display: flex; gap: 12px; padding: 14px; flex: 1; }
+        .item-thumb { flex-shrink: 0; }
+        .item-thumb img {
+            width: 88px; height: 88px; object-fit: cover;
+            border-radius: 8px; border: 1px solid var(--border); background: #fff;
+        }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { font-size: 14px; font-weight: 500; margin: 0 0 8px; word-break: break-word; }
+        .item-title a { color: var(--text); text-decoration: none; }
+        .item-title a:hover { color: var(--primary); }
+        .item-id { font-size: 12px; color: var(--muted); margin-bottom: 8px; word-break: break-all; }
+        .price-row { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; }
+        .price-label { color: var(--muted); }
+        .price-current { font-weight: 600; }
+        .price-drop { color: var(--success); }
+        .item-card-footer {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            padding: 10px 14px 14px; border-top: 1px solid var(--border);
+        }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
+            background: #fff; color: var(--text); font-size: 13px;
+            cursor: pointer; text-decoration: none; white-space: nowrap;
+        }
+        .btn:hover { background: var(--bg); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { color: var(--danger); border-color: #fecaca; }
+        .empty-list {
+            text-align: center; padding: 60px 16px; color: var(--muted);
+            background: var(--card-bg); border: 1px dashed var(--border);
+            border-radius: var(--radius); grid-column: 1 / -1;
+        }
+    </style>
+    <script th:inline="javascript">
+        var pageBrand = /*[[${brand}]]*/ 'empty';
+        var pageConditionId = /*[[${conditionId}]]*/ 'empty';
+        var backUrl = /*[[${backUrl}]]*/ '/rakuten';
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function itemPageUrl(item) {
+            if (item.itemUrl) return item.itemUrl;
+            return 'https://item.rakuten.co.jp/' + encodeURIComponent(item.itemId);
+        }
+
+        function renderItemCard(item, index) {
+            var href = itemPageUrl(item);
+            var img = item.imageUrl || '';
+            var priceDrop = item.originPrice != null && item.currentPrice != null && item.originPrice > item.currentPrice;
+            return '<div class="item-card">' +
+                '<div class="item-card-body">' +
+                '<div class="item-thumb"><a href="' + escapeHtml(href) + '" target="_blank">' +
+                '<img referrerpolicy="no-referrer" src="' + escapeHtml(img) + '" alt=""></a></div>' +
+                '<div class="item-info">' +
+                '<p class="item-title"><a href="' + escapeHtml(href) + '" target="_blank">' + escapeHtml(item.title) + '</a></p>' +
+                '<div class="item-id">#' + (index + 1) + ' · ' + escapeHtml(item.itemId) + '</div>' +
+                '<div class="price-row">' +
+                '<span><span class="price-label">原价 </span>' + (item.originPrice != null ? item.originPrice : '-') + '</span>' +
+                '<span><span class="price-label">现价 </span><span class="price-current' + (priceDrop ? ' price-drop' : '') + '">' +
+                (item.currentPrice != null ? item.currentPrice : '-') + '</span></span>' +
+                '</div></div></div>' +
+                '<div class="item-card-footer">' +
+                '<a class="btn btn-primary" href="' + escapeHtml(href) + '" target="_blank">乐天商品</a>' +
+                '<a class="btn btn-danger" href="/rakuten/setInterest?interest=0&itemId=' + escapeHtml(item.itemId) + '" target="_blank">不再关注</a>' +
+                '</div></div>';
+        }
+
+        function renderItemList(itemList) {
+            if (!itemList || itemList.length === 0) {
+                $('#itemList').html('<div class="empty-list">暂无已关注产品</div>');
+                $('#itemCount').text('共 0 件');
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < itemList.length; i++) {
+                html += renderItemCard(itemList[i], i);
+            }
+            $('#itemList').html(html);
+            $('#itemCount').text('共 ' + itemList.length + ' 件');
+        }
+
+        $(function () {
+            var initialItems = /*[[${itemList}]]*/ [];
+            renderItemList(initialItems);
+        });
+    </script>
+</head>
+<body>
+<div class="page">
+    <nav class="platform-nav">
+        <a href="/mercari">煤炉</a>
+        <a href="/yahoo">雅虎</a>
+        <a href="/rakuten" class="active">乐天</a>
+        <a href="/cosme" target="_blank">@cosme</a>
+    </nav>
+    <div class="page-header">
+        <h1 th:text="${pageTitle}">乐天已关注产品</h1>
+        <a class="back-link" th:href="${backUrl}">← 返回关键字管理</a>
+    </div>
+    <div class="toolbar">
+        <span class="item-count" id="itemCount" th:text="'共 ' + ${#lists.size(itemList)} + ' 件'">共 0 件</span>
+    </div>
+    <div class="item-grid" id="itemList"></div>
+</div>
+</body>
+</html>

@@ -52,14 +52,18 @@ public class MercariCrawler  {
         defaultDatasets.add("DATASET_TYPE_BEYOND");
         searchItemListRequest.setDefaultDatasets(defaultDatasets);
 
-        searchCondition.setKeyword(mercariSearchCondition.getKeyword());
+        searchCondition.setKeyword(normalizeKeyword(mercariSearchCondition.getKeyword()));
         searchCondition.setPriceMax(mercariSearchCondition.getPriceMax() == null? 0: mercariSearchCondition.getPriceMax());
         searchCondition.setPriceMin(mercariSearchCondition.getPriceMin() == null? 0 : mercariSearchCondition.getPriceMin());
-        if (StringUtils.isNotBlank(mercariSearchCondition.getSearchCategory())){
+        List<Integer> categoryIds = new ArrayList<>();
+        if (StringUtils.isNotBlank(mercariSearchCondition.getSearchCategory())) {
             String[] split = StringUtils.split(mercariSearchCondition.getSearchCategory(), ",");
-            List<Integer> collect = Arrays.stream(split).map(CategoryEnum::getIdByName).filter(Objects::nonNull).collect(Collectors.toList());
-            searchCondition.setCategoryId(collect);
+            categoryIds = Arrays.stream(split).map(CategoryEnum::getIdByName).filter(Objects::nonNull).collect(Collectors.toList());
         }
+        if (categoryIds.isEmpty()) {
+            categoryIds.add(CategoryEnum.HUAZHUANGPIN.getId());
+        }
+        searchCondition.setCategoryId(categoryIds);
         if (StringUtils.isNotBlank(mercariSearchCondition.getItemCondition())){
             String[] split = StringUtils.split(mercariSearchCondition.getItemCondition(), ",");
             List<Integer> collect = Arrays.stream(split).map(ConditionEnum::getIdByName).filter(Objects::nonNull).collect(Collectors.toList());
@@ -162,6 +166,18 @@ public class MercariCrawler  {
         );
 
         return response.getBody().getData();
+    }
+
+    /** 去掉首尾空白，统一横线字符，避免与煤炉站内搜索不一致 */
+    private static String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return null;
+        }
+        String k = keyword.trim();
+        k = k.replace('\u2015', '\u30FC')
+                .replace('\u2014', '\u30FC')
+                .replace('\uFF0D', '\u30FC');
+        return k;
     }
 
 }

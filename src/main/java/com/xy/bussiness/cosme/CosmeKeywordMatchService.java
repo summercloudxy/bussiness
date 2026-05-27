@@ -43,6 +43,8 @@ public class CosmeKeywordMatchService {
 
     private static final double AUTO_THRESHOLD = 80D;
     private static final long COSME_REQUEST_INTERVAL_MS = 800L;
+    private static final int BATCH_SEARCH_MAX_PAGES = 1;
+    private static final int MANUAL_SEARCH_MAX_PAGES = 3;
 
     @Autowired
     private MercariSearchConditionService mercariSearchConditionService;
@@ -233,6 +235,7 @@ public class CosmeKeywordMatchService {
         CosmeMatchTarget target = new CosmeMatchTarget();
         target.setId(condition.getId());
         target.setKeyword(condition.getKeyword());
+        target.setEnKeyword(condition.getEnKeyword());
         target.setDescription(condition.getDescription());
         target.setBrand(condition.getBrand());
         return target;
@@ -281,7 +284,8 @@ public class CosmeKeywordMatchService {
 
         try {
             Map<String, String> referenceTexts = buildReferenceTexts(target, brandMap);
-            List<CosmeProduct> products = searchCosmeProducts(target, brandMap);
+            int maxPages = showAllOnManual ? MANUAL_SEARCH_MAX_PAGES : BATCH_SEARCH_MAX_PAGES;
+            List<CosmeProduct> products = searchCosmeProducts(target, brandMap, maxPages);
             if (CollectionUtils.isEmpty(products)) {
                 result.setStatus("not_found");
                 result.setMessage("Cosme 搜索无结果");
@@ -313,6 +317,9 @@ public class CosmeKeywordMatchService {
             if (showAllOnManual) {
                 List<CosmeMatchCandidate> allCandidates = buildAllProductCandidates(products, referenceTexts);
                 if (allCandidates.isEmpty()) {
+                    allCandidates = buildFallbackCandidates(products);
+                }
+                if (allCandidates.isEmpty()) {
                     result.setStatus("not_found");
                     result.setMessage("Cosme 搜索结果无有效产品");
                     return result;
@@ -341,29 +348,86 @@ public class CosmeKeywordMatchService {
         }
     }
 
-    private List<CosmeProduct> searchCosmeProducts(CosmeMatchTarget target, Map<String, SearchBrand> brandMap) {
+    private List<CosmeProduct> searchCosmeProducts(CosmeMatchTarget target, Map<String, SearchBrand> brandMap, int maxPages) {
+        LinkedHashSet<String> queries = buildCosmeSearchQueries(target, brandMap);
+        LinkedHashMap<String, CosmeProduct> merged = new LinkedHashMap<>();
+        int pages = Math.max(1, maxPages);
+
+        for (String query : queries) {
+            if (StringUtils.isBlank(query)) {
+                continue;
+            }
+            for (int page = 1; page <= pages; page++) {
+                CosmeSearchResult searchResult = cosmeSearchService.search(query, page, null);
+                if (searchResult == null || CollectionUtils.isEmpty(searchResult.getProducts())) {
+                    break;
+                }
+                for (CosmeProduct product : searchResult.getProducts()) {
+                    if (product != null && StringUtils.isNotBlank(product.getProductId())) {
+                        merged.put(product.getProductId(), product);
+                    }
+                }
+                if (searchResult.getProducts().size() < CosmeSearchService.getPageSize()) {
+                    break;
+                }
+            }
+            if (!merged.isEmpty()) {
+                break;
+            }
+            sleepBetweenRequests();
+        }
+        return new ArrayList<>(merged.values());
+    }
+
+    private LinkedHashSet<String> buildCosmeSearchQueries(CosmeMatchTarget target, Map<String, SearchBrand> brandMap) {
         LinkedHashSet<String> queries = new LinkedHashSet<>();
-        queries.add(TextSimilarityUtil.normalize(target.getKeyword()));
+        String raw = StringUtils.trimToEmpty(target.getKeyword());
+        if (StringUtils.isNotBlank(raw)) {
+            queries.add(TextSimilarityUtil.normalizeCosmeSearchKeyword(raw));
+            queries.add(TextSimilarityUtil.normalize(raw));
+        }
+        if (StringUtils.isNotBlank(target.getEnKeyword())) {
+            queries.add(TextSimilarityUtil.normalize(target.getEnKeyword()));
+        }
 
         SearchBrand brand = brandMap.get(StringUtils.lowerCase(StringUtils.trimToEmpty(target.getBrand())));
         if (brand == null && StringUtils.isNotBlank(target.getBrand())) {
             brand = brandMap.get(target.getBrand().trim());
         }
         if (brand != null && StringUtils.isNotBlank(brand.getNameJa())) {
-            queries.add(TextSimilarityUtil.normalize(brand.getNameJa()) + " "
-                    + TextSimilarityUtil.normalize(target.getKeyword()));
+            String brandJa = TextSimilarityUtil.normalize(brand.getNameJa());
+            for (String base : new ArrayList<>(queries)) {
+                if (StringUtils.isNotBlank(base)) {
+                    queries.add(brandJa + " " + base);
+                }
+            }
+            if (StringUtils.isNotBlank(brand.getCosmeKeyword())) {
+                queries.add(TextSimilarityUtil.normalize(brand.getCosmeKeyword()) + " "
+                        + TextSimilarityUtil.normalizeCosmeSearchKeyword(raw));
+            }
         }
+        queries.removeIf(StringUtils::isBlank);
+        return queries;
+    }
 
-        for (String query : queries) {
-            if (StringUtils.isBlank(query)) {
+    private List<CosmeMatchCandidate> buildFallbackCandidates(List<CosmeProduct> products) {
+        List<CosmeMatchCandidate> candidates = new ArrayList<>();
+        for (CosmeProduct product : products) {
+            if (product == null || StringUtils.isBlank(product.getName())) {
                 continue;
             }
-            CosmeSearchResult searchResult = cosmeSearchService.search(query, 1, null);
-            if (searchResult != null && !CollectionUtils.isEmpty(searchResult.getProducts())) {
-                return searchResult.getProducts();
-            }
+            CosmeMatchCandidate candidate = new CosmeMatchCandidate();
+            candidate.setProductId(product.getProductId());
+            candidate.setProductName(product.getName());
+            candidate.setProductUrl(product.getProductUrl());
+            candidate.setImageUrl(product.getImageUrl());
+            candidate.setBrand(product.getBrand());
+            candidate.setSimilarity(0D);
+            candidate.setMatchedReference("Cosme 搜索结果");
+            candidate.setReferenceType("search_result");
+            candidates.add(candidate);
         }
-        return new ArrayList<>();
+        return candidates;
     }
 
     private List<CosmeMatchCandidate> collectCandidates(List<CosmeProduct> products,
@@ -464,18 +528,23 @@ public class CosmeKeywordMatchService {
         if (StringUtils.isBlank(referenceType)) {
             return false;
         }
-        return referenceType.startsWith("keyword") || referenceType.startsWith("brand_");
+        return referenceType.startsWith("keyword")
+                || referenceType.startsWith("en_keyword")
+                || referenceType.startsWith("brand_");
     }
 
     private Map<String, String> buildReferenceTexts(CosmeMatchTarget target, Map<String, SearchBrand> brandMap) {
         Map<String, String> references = new LinkedHashMap<>();
-        String keyword = TextSimilarityUtil.normalize(target.getKeyword());
+        String keyword = TextSimilarityUtil.normalizeCosmeSearchKeyword(target.getKeyword());
         if (StringUtils.isBlank(keyword)) {
             return references;
         }
 
         addReference(references, "keyword", keyword);
         addReference(references, "keyword_compact", TextSimilarityUtil.removeSpaces(keyword));
+        if (StringUtils.isNotBlank(target.getEnKeyword())) {
+            addReference(references, "en_keyword", TextSimilarityUtil.normalize(target.getEnKeyword()));
+        }
 
         SearchBrand brand = brandMap.get(StringUtils.lowerCase(StringUtils.trimToEmpty(target.getBrand())));
         if (brand == null && StringUtils.isNotBlank(target.getBrand())) {

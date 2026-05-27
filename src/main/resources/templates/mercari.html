@@ -1,129 +1,1037 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-
-
-    <script type="text/javascript" src="/layui/layui.js" charset="utf-8"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煤炉关键字管理</title>
+    <link rel="stylesheet" th:href="@{/css/platform-common.css}">
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
-    <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>-->
-    <!--    <script type="text/javascript" src="https://lib.baomitu.com/clipboard.js/1.6.1/clipboard.min.js"></script>-->
-    <!--    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>-->
-
     <script src="../clipboard/dist/clipboard.min.js"></script>
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --card-bg: #fff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --radius: 10px;
+        }
 
-    <!-- 3. Instantiate clipboard by passing a string selector -->
+        * { box-sizing: border-box; }
 
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
 
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        .page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .toolbar label {
+            font-size: 14px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .toolbar select {
+            min-width: 160px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .toolbar-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 12px;
+        }
+
+        .toolbar-links a:hover { text-decoration: underline; }
+
+        .cosme-unlinked { color: var(--muted); font-size: 13px; }
+        .match-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .match-table th, .match-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .match-table th { background: #f9fafb; }
+        .match-score { font-weight: 600; color: var(--success); }
+        .match-score.review { color: #d97706; }
+        .match-ref { color: var(--muted); font-size: 12px; margin-top: 4px; }
+        .cosme-field-wrap { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+        .cosme-thumb {
+            width: 56px; height: 56px; object-fit: contain; background: #fafafa;
+            border: 1px solid var(--border); border-radius: 6px; flex-shrink: 0;
+        }
+        .match-product-cell { display: flex; gap: 10px; align-items: flex-start; }
+        .match-product-cell img {
+            width: 64px; height: 64px; object-fit: contain; background: #fafafa;
+            border: 1px solid var(--border); border-radius: 6px; flex-shrink: 0;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .condition-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .card-main {
+            padding: 14px 16px;
+        }
+
+        .card-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .card-id {
+            font-size: 12px;
+            color: var(--muted);
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .card-brand {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .card-desc {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-on {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .badge-off {
+            background: #f3f4f6;
+            color: var(--muted);
+        }
+
+        .meta-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .meta-chips span {
+            background: var(--bg);
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .keyword-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px 16px;
+            margin-bottom: 12px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .field-value {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .field-value a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .field-value a:hover { text-decoration: underline; }
+
+        .latest-section {
+            margin-bottom: 12px;
+        }
+
+        .latest-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .latest-items img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .latest-items .empty-tip {
+            color: var(--muted);
+            font-size: 13px;
+            padding: 8px 0;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--bg);
+        }
+
+        .btn-copy {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-danger {
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+
+        .btn-toggle {
+            color: var(--primary);
+            border-color: #bfdbfe;
+            background: #eff6ff;
+        }
+
+        .filter-panel {
+            display: none;
+            padding: 12px 16px 16px;
+            background: #fafbfc;
+            border-top: 1px solid var(--border);
+        }
+
+        .filter-panel.open {
+            display: block;
+        }
+
+        .filter-group {
+            margin-bottom: 14px;
+        }
+
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-group-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 6px 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-item input {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .price-range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .price-range-row input[type="number"] {
+            width: 120px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .price-range-row .hint {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .checkbox-item span {
+            line-height: 1.3;
+        }
+
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .pagination-top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .pagination-bottom {
+            margin-top: 16px;
+        }
+
+        .pagination-left,
+        .pagination-right {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination button,
+        .page-num {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            min-width: 36px;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .page-num.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .page-num.ellipsis {
+            border: none;
+            background: transparent;
+            cursor: default;
+            min-width: auto;
+            padding: 6px 4px;
+        }
+
+        .page-info {
+            font-size: 14px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .page-size-select {
+            padding: 5px 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--muted);
+            background: var(--card-bg);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal.modal-wide {
+            max-width: 960px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .modal-close {
+            border: none;
+            background: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 16px 18px;
+        }
+
+        .form-field {
+            margin-bottom: 14px;
+        }
+
+        .form-field label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .form-field input:not([type="radio"]):not([type="checkbox"]),
+        .form-field select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-field .hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .form-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .form-check input[type="radio"],
+        .form-check input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .form-check-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cosme-batch-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+
+        .cosme-batch-option input[type="number"] {
+            width: 88px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .cosme-batch-option .hint {
+            margin-top: 0;
+            white-space: nowrap;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 12px 18px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 640px) {
+            .checkbox-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
     <script type="text/javascript">
+        var currentPage = 1;
+        var pageSize = 10;
+        var totalPages = 1;
+        var conditionsById = {};
+        var pendingCosmeMatches = [];
+        var cosmeMatchModalMode = 'batch';
 
-        function brandchange() {
-            var brand = $('select option:selected').val();
+        var CATEGORY_GROUPS = [
+            {
+                title: '大类',
+                items: [{id: 'HUAZHUANGPIN', label: '化妆品/香水/美容'}]
+            },
+            {
+                title: '底妆',
+                items: [
+                    {id: 'DIZHUANGALL', label: '底妆全部'},
+                    {id: 'JICHU', label: '基础'},
+                    {id: 'DIZHUANG', label: '底妆'},
+                    {id: 'XIANGFEN', label: '香粉'},
+                    {id: 'DIZHUANGOTHER', label: '底妆其他'}
+                ]
+            },
+            {
+                title: '彩妆',
+                items: [
+                    {id: 'HUAZHUANGPINALL', label: '化妆品全部'},
+                    {id: 'YANYING', label: '眼影'},
+                    {id: 'YANXIANBI', label: '眼线笔'},
+                    {id: 'KOUHONG', label: '口红'},
+                    {id: 'CHUNCAI', label: '唇彩'},
+                    {id: 'LIANJIA', label: '脸颊'},
+                    {id: 'LIANSE', label: '脸色'},
+                    {id: 'HUAZHUANGPINOTHER', label: '化妆品其他'}
+                ]
+            }
+        ];
+
+        var CONDITION_ITEMS = [
+            {id: 'QUANXIN', label: '全新'},
+            {id: 'JINQUANXIN', label: '接近全新'}
+        ];
+
+        var CONDITION_SEARCH_IDS = {
+            QUANXIN: 1,
+            JINQUANXIN: 2,
+            MEIYOUMINGXIAN: 3,
+            YOUYIXIE: 4,
+            HUAHEN: 5,
+            BUJIA: 6
+        };
+
+        /** 化妆品大类 category_id=6 固定保留 */
+        function buildMercariSearchUrl(condition) {
+            var keyword = (condition.keyword || '').trim();
+            var itemConditionId = 1;
+            if (condition.conditionList && condition.conditionList.length > 0) {
+                var mapped = CONDITION_SEARCH_IDS[condition.conditionList[0]];
+                if (mapped) {
+                    itemConditionId = mapped;
+                }
+            }
+            var url = 'https://jp.mercari.com/search?keyword=' + encodeURIComponent(keyword) +
+                '&order=desc&sort=created_time&status=on_sale&category_id=6&item_condition_id=' + itemConditionId;
+            if (condition.priceMax != null && condition.priceMax > 0) {
+                url += '&price_max=' + condition.priceMax;
+            }
+            if (condition.priceMin != null && condition.priceMin > 0) {
+                url += '&price_min=' + condition.priceMin;
+            }
+            return url;
+        }
+
+        function escapeHtml(text) {
+            if (text == null) {
+                return '';
+            }
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function googleSearchUrl(q) {
+            return 'https://www.google.com/search?q=' + encodeURIComponent(q || '');
+        }
+
+        function googleImageSearchUrl(q) {
+            return 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q || '');
+        }
+
+        function renderLatestItems(items) {
+            if (!items || items.length === 0) {
+                return '<div class="latest-items"><span class="empty-tip">暂无抓取到的产品</span></div>';
+            }
+            var html = '<div class="latest-items">';
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                html += '<a href="https://jp.mercari.com/item/' + escapeHtml(item.mercariItemId) + '" target="_blank" title="' + escapeHtml(item.mercariItemTitle) + '">' +
+                    '<img referrerpolicy="no-referrer" src="' + escapeHtml(item.imageUrl) + '" alt="' + escapeHtml(item.mercariItemTitle) + '">' +
+                    '</a>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function renderCheckboxGrid(items, condition, type) {
+            var onclick = type === 'category' ? 'OncheckCategoryBox(this)' : 'OncheckConditionBox(this)';
+            var html = '<div class="checkbox-grid">';
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                var list = type === 'category' ? condition.categoryList : condition.conditionList;
+                var checked = list.indexOf(item.id) > -1 ? 'checked' : '';
+                html += '<label class="checkbox-item">' +
+                    '<input type="checkbox" value="' + item.id + '" name="' + condition.id + '" ' + checked + ' onclick="' + onclick + '">' +
+                    '<span>' + item.label + '</span></label>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function renderFilterPanel(condition) {
+            var html = '<div class="filter-panel" id="filter-' + condition.id + '">';
+            html += '<div class="filter-group">' +
+                '<div class="filter-group-title">价格区间（日元）</div>' +
+                '<div class="price-range-row">' +
+                '<input type="number" id="price-min-' + condition.id + '" placeholder="下限" min="1" value="' +
+                (condition.priceMin != null && condition.priceMin > 0 ? condition.priceMin : '') + '">' +
+                '<span>~</span>' +
+                '<input type="number" id="price-max-' + condition.id + '" placeholder="上限" min="1" value="' +
+                (condition.priceMax != null && condition.priceMax > 0 ? condition.priceMax : '') + '">' +
+                '<button type="button" class="btn btn-primary" onclick="savePriceRange(' + condition.id + ')">保存</button>' +
+                '<span class="hint">留空表示不限制，爬虫与搜索链接均生效</span>' +
+                '</div></div>';
+            for (var g = 0; g < CATEGORY_GROUPS.length; g++) {
+                var group = CATEGORY_GROUPS[g];
+                html += '<div class="filter-group">' +
+                    '<div class="filter-group-title">' + group.title + '</div>' +
+                    renderCheckboxGrid(group.items, condition, 'category') +
+                    '</div>';
+            }
+            html += '<div class="filter-group">' +
+                '<div class="filter-group-title">商品状态</div>' +
+                renderCheckboxGrid(CONDITION_ITEMS, condition, 'condition') +
+                '</div></div>';
+            return html;
+        }
+
+        function renderActions(condition) {
+            var html = '<div class="card-actions">';
+            if (condition.enable) {
+                html += '<button class="btn" onclick="disableCondition(' + condition.id + ')">禁用</button>';
+            } else {
+                html += '<button class="btn btn-primary" onclick="enableCondition(' + condition.id + ')">启用</button>';
+            }
+            html += '<button class="btn" onclick="openEditModal(' + condition.id + ')">编辑关键字</button>';
+            html += '<button class="btn" onclick="editDuration(' + condition.id + ',' + condition.duration + ')">修改间隔</button>';
+            html += '<button class="btn btn-danger" onclick="deleteCondition(' + condition.id + ')">删除</button>';
+            html += '<button class="btn btn-toggle" onclick="toggleFilter(' + condition.id + ')">筛选设置</button>';
+            html += '<a class="btn btn-primary" href="/interest/item/' + condition.id + '" target="_blank">已关注产品</a>';
+            html += '</div>';
+            return html;
+        }
+
+        function cosmeSearchUrl(keyword) {
+            return 'https://cosmeet.cosme.net/product/search?fw=' + encodeURIComponent(keyword || '');
+        }
+
+        function renderCosmeField(condition) {
+            var html = '<div><span class="field-label">@cosme</span><div class="field-value cosme-field-wrap">';
+            if (condition.cosmeProductImage) {
+                html += '<img class="cosme-thumb" src="' + escapeHtml(condition.cosmeProductImage) + '" referrerpolicy="no-referrer" alt="">';
+            }
+            html += '<div>';
+            if (condition.cosmeProductId === '-1') {
+                html += '<span class="cosme-unlinked">已跳过关联</span><br>';
+            } else if (condition.cosmeProductId === '-2') {
+                html += '<span class="cosme-unlinked">暂无匹配（批量已尝试）</span><br>';
+            } else if (condition.cosmeProductUrl) {
+                var label = condition.cosmeProductName || condition.cosmeProductId || '@cosme 详情';
+                html += '<a href="' + escapeHtml(condition.cosmeProductUrl) + '" target="_blank" rel="noopener">' +
+                    escapeHtml(label) + '</a><br>';
+            } else {
+                html += '<span class="cosme-unlinked">未关联</span><br>';
+            }
+            html += '<a class="btn" href="' + cosmeSearchUrl(condition.keyword) + '" target="_blank" rel="noopener">Cosme搜索</a> ';
+            if (!condition.cosmeProductUrl && condition.cosmeProductId !== '-1' && condition.cosmeProductId !== '-2') {
+                html += '<button type="button" class="btn" onclick="matchCosmeOne(' + condition.id + ')">匹配</button>';
+            } else {
+                html += '<button type="button" class="btn" onclick="rematchCosmeOne(' + condition.id + ')">重新匹配</button>';
+            }
+            html += '</div></div></div>';
+            return html;
+        }
+
+        function renderCard(condition) {
+            var badge = condition.enable
+                ? '<span class="badge badge-on">已启用</span>'
+                : '<span class="badge badge-off">已禁用</span>';
+
+            return '<div class="condition-card">' +
+                '<div class="card-main">' +
+                '<div class="card-top">' +
+                '<div class="card-title">' +
+                '<span class="card-id">#' + condition.id + '</span>' +
+                '<span class="card-brand">' + escapeHtml(condition.brand) + '</span>' +
+                '<span class="card-desc">' + escapeHtml(condition.description) + '</span>' +
+                badge +
+                '</div>' +
+                '<div class="meta-chips">' +
+                '<span>间隔 ' + condition.duration + ' 分钟</span>' +
+                '</div></div>' +
+                '<div class="keyword-row">' +
+                '<div><span class="field-label">关键字</span><div class="field-value">' +
+                '<a href="' + buildMercariSearchUrl(condition) + '" target="_blank" rel="noopener">' + escapeHtml(condition.keyword) + '</a>' +
+                '<button data-clipboard-text="' + escapeHtml(condition.keyword) + '" class="btn btn-copy">复制</button>' +
+                '<a class="btn" href="' + googleSearchUrl(condition.keyword) + '" target="_blank" rel="noopener">Google</a></div></div>' +
+                '<div><span class="field-label">英文关键字</span><div class="field-value">' +
+                '<a href="' + googleImageSearchUrl(condition.enKeyword) + '" target="_blank" rel="noopener">' + escapeHtml(condition.enKeyword || '') + '</a>' +
+                '<button data-clipboard-text="' + escapeHtml(condition.enKeyword || '') + '" class="btn btn-copy">复制</button>' +
+                '<a class="btn" href="' + googleSearchUrl(condition.enKeyword) + '" target="_blank" rel="noopener">Google</a></div></div>' +
+                renderCosmeField(condition) +
+                '</div>' +
+                '<div class="latest-section"><span class="field-label">最新产品</span>' +
+                renderLatestItems(condition.latestItems) + '</div>' +
+                renderActions(condition) +
+                '</div>' +
+                renderFilterPanel(condition) +
+                '</div>';
+        }
+
+        function toggleFilter(id) {
+            var panel = document.getElementById('filter-' + id);
+            if (panel) {
+                panel.classList.toggle('open');
+            }
+        }
+
+        function buildPageNumbersHtml() {
+            if (totalPages <= 1) {
+                return '';
+            }
+            var pages = [];
+            var start = Math.max(1, currentPage - 2);
+            var end = Math.min(totalPages, currentPage + 2);
+            if (start > 1) {
+                pages.push(1);
+                if (start > 2) {
+                    pages.push('...');
+                }
+            }
+            for (var p = start; p <= end; p++) {
+                pages.push(p);
+            }
+            if (end < totalPages) {
+                if (end < totalPages - 1) {
+                    pages.push('...');
+                }
+                pages.push(totalPages);
+            }
+            var html = '';
+            for (var i = 0; i < pages.length; i++) {
+                var item = pages[i];
+                if (item === '...') {
+                    html += '<span class="page-num ellipsis">…</span>';
+                } else if (item === currentPage) {
+                    html += '<span class="page-num active">' + item + '</span>';
+                } else {
+                    html += '<button type="button" class="page-num" onclick="goToPage(' + item + ')">' + item + '</button>';
+                }
+            }
+            return html;
+        }
+
+        function renderPaginationBar() {
+            var pageNums = buildPageNumbersHtml();
+            var html =
+                '<div class="pagination-left">' +
+                '<button type="button" class="prevPageBtn" onclick="changePage(-1)" ' + (currentPage <= 1 ? 'disabled' : '') + '>上一页</button>' +
+                pageNums +
+                '<button type="button" class="nextPageBtn" onclick="changePage(1)" ' + (currentPage >= totalPages ? 'disabled' : '') + '>下一页</button>' +
+                '</div>' +
+                '<div class="pagination-right">' +
+                '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + totalCount + ' 条</span>' +
+                '<label>每页 <select class="page-size-select" onchange="changePageSize(this.value)">' +
+                '<option value="10"' + (pageSize === 10 ? ' selected' : '') + '>10</option>' +
+                '<option value="20"' + (pageSize === 20 ? ' selected' : '') + '>20</option>' +
+                '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+                '</select> 条</label></div>';
+            $('.pagination-bar').html(html);
+        }
+
+        var totalCount = 0;
+
+        function updatePagination(total, page, size) {
+            totalCount = total;
+            totalPages = Math.max(1, Math.ceil(total / size));
+            currentPage = page;
+            renderPaginationBar();
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) {
+                return;
+            }
+            loadConditions(page);
+        }
+
+        function changePageSize(size) {
+            pageSize = parseInt(size, 10);
+            filterChange();
+        }
+
+        function getEnableFilterParam() {
+            var v = $('#enableFilter').val();
+            if (v === 'true') {
+                return true;
+            }
+            if (v === 'false') {
+                return false;
+            }
+            return null;
+        }
+
+        function loadConditions(page, keepScroll) {
+            if (keepScroll === undefined) {
+                keepScroll = page === currentPage;
+            }
+            var scrollY = keepScroll ? window.scrollY : null;
+            var brand = $('#mercaribrand option:selected').val() || '';
+            var data = {
+                brand: brand,
+                page: page,
+                pageSize: pageSize
+            };
+            var enable = getEnableFilterParam();
+            if (enable !== null) {
+                data.enable = enable;
+            }
             $.ajax({
-                url: '/mercari/searchCondition?brand=' + brand,
+                url: '/mercari/searchCondition/page',
                 type: 'get',
                 dataType: 'json',
-                async: false,
-                // data : {'userName':userName},
-                success: function (searchconditionlist) {
-
-                    $("#brandinterest").html(
-                        ' <a href="/interest/item/brand/' + brand + '" target="_blank">品牌关注</a>')
-
-
-                    $("#conditionTableBody").html('')
-                    for (var i in searchconditionlist) {
-                        $("#conditionTableBody").append(
-                            "<tr><td>" + searchconditionlist[i].id +
-                            "</td><td>" + searchconditionlist[i].brand +
-                            "</td><td><a href='https://jp.mercari.com/search?keyword=" + searchconditionlist[i].keyword + "&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1' target='_blank'>" + searchconditionlist[i].keyword + "</a>" +
-
-                            "<button data-clipboard-text='" +searchconditionlist[i].keyword + "' class='btn'>点击复制</button>" +
-                            "</td><td><a href='https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=" + searchconditionlist[i].enKeyword + "&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1' target='_blank'>" + searchconditionlist[i].enKeyword + "</a>" +
-
-                            "<button data-clipboard-text='" +searchconditionlist[i].enKeyword + "' class='btn'>点击复制</button>" +
-                            "</td><td>" + searchconditionlist[i].description +
-                            "</td><td>" + searchconditionlist[i].enable +
-                            "</td><td>" + searchconditionlist[i].duration +
-
-
-                            "</td><td>" +
-                            "<p>" +
-                            "<input id='HUAZHUANGPIN' type='checkbox' value='HUAZHUANGPIN' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('HUAZHUANGPIN') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPIN'>化妆品</label>" +
-                            "</p>" +
-
-                            "<p>" +
-                            "<input id='DIZHUANGALL' type='checkbox' value='DIZHUANGALL' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('DIZHUANGALL') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANGALL'>底妆全部</label>" +
-                            "<input id='JICHU' type='checkbox' value='JICHU' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('JICHU') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='JICHU'>基础</label>" +
-                            "<input id='DIZHUANG' type='checkbox' value='DIZHUANG' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('DIZHUANG') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANG'>底妆</label>" +
-                            "<input id='XIANGFEN' type='checkbox' value='XIANGFEN' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('XIANGFEN') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='XIANGFEN'>香粉</label>" +
-                            "<input id='DIZHUANGOTHER' type='checkbox' value='DIZHUANGOTHER' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('DIZHUANGOTHER') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='DIZHUANGOTHER'>底妆其他</label>" +
-                            "</p>" +
-
-                            "<p>" +
-                            "<input id='HUAZHUANGPINALL' type='checkbox' value='HUAZHUANGPINALL' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('HUAZHUANGPINALL') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPINALL'>化妆品全部</label>" +
-                            "<input id='YANYING' type='checkbox' value='YANYING' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('YANYING') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='YANYING'>眼影</label>" +
-                            "<input id='YANXIANBI' type='checkbox' value='YANXIANBI' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('YANXIANBI') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='YANXIANBI'>眼线笔</label>" +
-                            "<input id='KOUHONG' type='checkbox' value='KOUHONG' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('KOUHONG') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='KOUHONG'>口红</label>" +
-                            "<input id='CHUNCAI' type='checkbox' value='CHUNCAI' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('CHUNCAI') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='CHUNCAI'>唇彩</label>" +
-                            "<input id='LIANJIA' type='checkbox' value='LIANJIA' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('LIANJIA') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='LIANJIA'>脸颊</label>" +
-                            "<input id='LIANSE' type='checkbox' value='LIANSE' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('LIANSE') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='LIANSE'>脸色</label>" +
-
-                            "<input id='HUAZHUANGPINOTHER' type='checkbox' value='HUAZHUANGPINOTHER' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].categoryList.indexOf('HUAZHUANGPINOTHER') > -1) ? 'checked' : '') +
-                            " onClick='OncheckCategoryBox(this)'><label htmlFor='HUAZHUANGPINOTHER'>化妆品其他</label>" +
-                            "</p>" +
-
-
-                            "</td><td><input id='QUANXIN' type='checkbox' value='QUANXIN' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].conditionList.indexOf('QUANXIN') > -1) ? 'checked' : '') +
-                            " onClick='OncheckConditionBox(this)'><label htmlFor='QUANXIN'>全新</label>" +
-
-                            "<input id='JINQUANXIN' type='checkbox' value='JINQUANXIN' name='" + searchconditionlist[i].id +
-                            "' " + ((searchconditionlist[i].conditionList.indexOf('JINQUANXIN') > -1) ? 'checked' : '') +
-                            " onClick='OncheckConditionBox(this)'><label htmlFor='JINQUANXIN'>接近全新</label>" +
-
-                            "</td><td><a className='btn btn-sm btn-primary' href='/interest/item/" + searchconditionlist[i].id + "' target='_blank'>已关注产品</a>" +
-
-                            "</td></tr>"
-                        )
+                data: data,
+                success: function (result) {
+                    if (brand && brand !== '全部') {
+                        $("#brandinterest").html('<a href="/interest/item/brand/' + encodeURIComponent(brand) + '" target="_blank">品牌关注</a>');
+                    } else {
+                        $("#brandinterest").html('');
+                    }
+                    conditionsById = {};
+                    var html = '';
+                    if (result.records.length === 0) {
+                        html = '<div class="empty-list">暂无关键字数据</div>';
+                    } else {
+                        html = '<div class="card-list">';
+                        for (var i = 0; i < result.records.length; i++) {
+                            conditionsById[result.records[i].id] = result.records[i];
+                            html += renderCard(result.records[i]);
+                        }
+                        html += '</div>';
+                    }
+                    $("#conditionList").html(html);
+                    updatePagination(result.total, result.page, result.pageSize);
+                    if (window.clipboard) {
+                        window.clipboard.destroy();
+                    }
+                    window.clipboard = new ClipboardJS('.btn-copy');
+                    if (keepScroll) {
+                        window.scrollTo(0, scrollY);
+                        requestAnimationFrame(function () {
+                            window.scrollTo(0, scrollY);
+                        });
+                    } else {
+                        window.scrollTo({top: 0, behavior: 'smooth'});
                     }
                 }
             });
-
         }
 
+        function filterChange() {
+            currentPage = 1;
+            loadConditions(1, false);
+        }
+
+        function changePage(delta) {
+            var target = currentPage + delta;
+            if (target < 1 || target > totalPages) {
+                return;
+            }
+            loadConditions(target);
+        }
+
+        function enableCondition(id) {
+            $.get('/mercari/enableSearchCondition?conditionId=' + id, function () {
+                loadConditions(currentPage, true);
+            });
+        }
+
+        function disableCondition(id) {
+            $.get('/mercari/disableSearchCondition?conditionId=' + id, function () {
+                loadConditions(currentPage, true);
+            });
+        }
+
+        function deleteCondition(id) {
+            if (!confirm('确定删除该关键字吗？相关抓取记录也会一并删除。')) {
+                return;
+            }
+            $.get('/mercari/deleteSearchCondition?conditionId=' + id, function (msg) {
+                alert(msg);
+                loadConditions(currentPage);
+            });
+        }
+
+        function editDuration(id, currentDuration) {
+            var duration = prompt('请输入查询间隔（分钟）', currentDuration);
+            if (duration == null || duration === '') {
+                return;
+            }
+            if (!/^\d+$/.test(duration) || parseInt(duration, 10) < 1) {
+                alert('请输入大于0的整数');
+                return;
+            }
+            $.get('/mercari/updateDuration?conditionId=' + id + '&duration=' + duration, function (msg) {
+                alert(msg);
+                loadConditions(currentPage);
+            });
+        }
 
         function OncheckConditionBox(e) {
             $.ajax({
-                url: '/mercari/updateCondition?id=' + e.name + '&condition=' + e.id + "&enable=" + e.checked,
+                url: '/mercari/updateCondition?id=' + e.name + '&condition=' + e.value + "&enable=" + e.checked,
                 type: 'get',
                 dataType: 'json',
                 async: false
@@ -132,185 +1040,540 @@
 
         function OncheckCategoryBox(e) {
             $.ajax({
-                url: '/mercari/updateCategory?id=' + e.name + '&category=' + e.id + "&enable=" + e.checked,
+                url: '/mercari/updateCategory?id=' + e.name + '&category=' + e.value + "&enable=" + e.checked,
                 type: 'get',
                 dataType: 'json',
                 async: false
             });
         }
 
-        function linkUrl(item) {
-            let url = item.getAttribute('keyword');//拿到想要复制的值
-            let copyInput = document.createElement('input');//创建input元素
-            document.body.appendChild(copyInput);//向页面底部追加输入框
-            copyInput.setAttribute('value', url);//添加属性，将url赋值给input元素的value属性
-            copyInput.select();//选择input元素
-            document.execCommand("Copy");//执行复制命令
-            this.$message.success("链接已复制！");//弹出提示信息，不同组件可能存在写法不同
-            //复制之后再删除元素，否则无法成功赋值
-            copyInput.remove();//删除动态创建的节点
+        function savePriceRange(conditionId) {
+            var minVal = $.trim($('#price-min-' + conditionId).val());
+            var maxVal = $.trim($('#price-max-' + conditionId).val());
+            if (minVal !== '' && (!/^\d+$/.test(minVal) || parseInt(minVal, 10) < 1)) {
+                alert('下限请输入大于 0 的整数');
+                return;
+            }
+            if (maxVal !== '' && (!/^\d+$/.test(maxVal) || parseInt(maxVal, 10) < 1)) {
+                alert('上限请输入大于 0 的整数');
+                return;
+            }
+            if (minVal !== '' && maxVal !== '' && parseInt(minVal, 10) > parseInt(maxVal, 10)) {
+                alert('下限不能大于上限');
+                return;
+            }
+            $.get('/mercari/updatePrice', {
+                id: conditionId,
+                priceMin: minVal,
+                priceMax: maxVal
+            }, function (msg) {
+                alert(msg);
+                if (conditionsById[conditionId]) {
+                    conditionsById[conditionId].priceMin = minVal === '' ? null : parseInt(minVal, 10);
+                    conditionsById[conditionId].priceMax = maxVal === '' ? null : parseInt(maxVal, 10);
+                }
+            }).fail(function () {
+                alert('保存失败');
+            });
         }
 
+        function fillBrandDatalist() {
+            var $list = $('#brandList');
+            $list.empty();
+            $('#mercaribrand option').each(function () {
+                var val = $(this).val();
+                if (val && val !== '全部') {
+                    $list.append('<option value="' + escapeHtml(val) + '">');
+                }
+            });
+        }
+
+        function openCreateModal() {
+            $('#createForm')[0].reset();
+            fillBrandDatalist();
+            var currentBrand = $('#mercaribrand option:selected').val();
+            if (currentBrand && currentBrand !== '全部') {
+                $('#createBrand').val(currentBrand);
+            }
+            $('#createDuration').val(60);
+            $('#createEnable').prop('checked', false);
+            $('#createModal').addClass('open');
+        }
+
+        function closeCreateModal() {
+            $('#createModal').removeClass('open');
+        }
+
+        function submitCreate() {
+            var brand = $('#createBrand').val();
+            var description = $('#createDescription').val().trim();
+            var keyword = $('#createKeyword').val().trim();
+            var enKeyword = $('#createEnKeyword').val().trim();
+            var duration = parseInt($('#createDuration').val(), 10);
+            var enable = $('#createEnable').is(':checked');
+            if (!brand) {
+                alert('请选择品牌');
+                return;
+            }
+            if (!description) {
+                alert('请填写描述');
+                return;
+            }
+            if (!keyword) {
+                alert('请填写日文关键字');
+                return;
+            }
+            $.post('/mercari/searchCondition/create', {
+                brand: brand,
+                description: description,
+                keyword: keyword,
+                enKeyword: enKeyword,
+                duration: duration,
+                enable: enable
+            }, function (msg) {
+                alert(msg);
+                closeCreateModal();
+                filterChange();
+            });
+        }
+
+        function openEditModal(id) {
+            var condition = conditionsById[id];
+            if (!condition) {
+                alert('数据未加载，请刷新页面');
+                return;
+            }
+            $('#editConditionId').val(condition.id);
+            $('#editDescription').text(condition.description + '（' + condition.brand + '）');
+            $('#editKeyword').val(condition.keyword || '');
+            $('#editEnKeyword').val(condition.enKeyword || '');
+            $('#editModal').addClass('open');
+        }
+
+        function closeEditModal() {
+            $('#editModal').removeClass('open');
+        }
+
+        function submitEdit() {
+            var conditionId = $('#editConditionId').val();
+            var keyword = $('#editKeyword').val().trim();
+            var enKeyword = $('#editEnKeyword').val().trim();
+            if (!keyword) {
+                alert('请填写日文关键字');
+                return;
+            }
+            $.post('/mercari/searchCondition/updateKeywords', {
+                conditionId: conditionId,
+                keyword: keyword,
+                enKeyword: enKeyword
+            }, function (msg) {
+                alert(msg);
+                closeEditModal();
+                loadConditions(currentPage);
+            });
+        }
+
+        function openCosmeBatchMatchModal() {
+            $('input[name="cosmeBatchMode"][value="limit"]').prop('checked', true);
+            $('#cosmeBatchLimit').val(30).prop('disabled', false);
+            $('#cosmeBatchSubmitBtn').prop('disabled', false).text('开始匹配');
+            $('#cosmeBatchMatchModal').addClass('open');
+        }
+
+        function closeCosmeBatchMatchModal() {
+            $('#cosmeBatchMatchModal').removeClass('open');
+        }
+
+        function onCosmeBatchModeChange() {
+            var isLimit = $('input[name="cosmeBatchMode"]:checked').val() === 'limit';
+            $('#cosmeBatchLimit').prop('disabled', !isLimit);
+        }
+
+        function submitCosmeBatchMatch() {
+            var mode = $('input[name="cosmeBatchMode"]:checked').val();
+            var limit = 0;
+            if (mode === 'limit') {
+                limit = parseInt($('#cosmeBatchLimit').val(), 10);
+                if (!limit || limit < 1) {
+                    alert('请输入有效的匹配数量（至少 1 条）');
+                    return;
+                }
+            }
+            var brand = $('#mercaribrand option:selected').val() || '';
+            var $btn = $('#cosmeBatchSubmitBtn');
+            $btn.prop('disabled', true).text('匹配中…');
+            $.post('/mercari/cosmeMatch/run', {
+                brand: brand === '全部' ? '' : brand,
+                onlyMissing: true,
+                limit: limit
+            }, function (res) {
+                $btn.prop('disabled', false).text('开始匹配');
+                closeCosmeBatchMatchModal();
+                var msg = '处理 ' + (res.processed || 0) + ' 条：自动关联 ' + (res.autoApplied || 0) +
+                    '，待确认 ' + (res.pending || 0) + '，未匹配 ' + (res.notFound || 0);
+                alert(msg);
+                loadConditions(currentPage);
+                pendingCosmeMatches = (res.items || []).filter(function (item) {
+                    return item.status === 'pending';
+                });
+                if (pendingCosmeMatches.length > 0) {
+                    openCosmeMatchModal();
+                }
+            }).fail(function () {
+                $btn.prop('disabled', false).text('开始匹配');
+                alert('Cosme 匹配请求失败');
+            });
+        }
+
+        function matchCosmeOne(conditionId) {
+            $.post('/mercari/cosmeMatch/matchOne', { conditionId: conditionId }, function (res) {
+                if (res.status === 'auto_applied') {
+                    alert(res.message || '已自动关联');
+                    loadConditions(currentPage);
+                    return;
+                }
+                if (res.status === 'pick' || res.status === 'pending') {
+                    pendingCosmeMatches = [res];
+                    openCosmeMatchModal();
+                    return;
+                }
+                alert(res.message || '未找到可关联的 Cosme 产品');
+                loadConditions(currentPage);
+            }).fail(function () {
+                alert('Cosme 匹配请求失败');
+            });
+        }
+
+        function rematchCosmeOne(conditionId) {
+            $.post('/mercari/cosmeMatch/reset', { conditionId: conditionId }, function () {
+                matchCosmeOne(conditionId);
+            }).fail(function () {
+                alert('清除关联状态失败');
+            });
+        }
+
+        function openCosmeMatchModal() {
+            if (!pendingCosmeMatches || pendingCosmeMatches.length === 0) {
+                return;
+            }
+            var isPickMode = pendingCosmeMatches.length === 1 && pendingCosmeMatches[0].showAllProducts;
+            cosmeMatchModalMode = isPickMode ? 'pick' : 'batch';
+            if (isPickMode) {
+                var pickItem = pendingCosmeMatches[0];
+                $('#cosmeMatchModalTitle').text('选择 Cosme 产品 · #' + pickItem.conditionId);
+                $('#cosmeMatchModalFooter').html(
+                    '<button type="button" class="btn btn-danger" onclick="skipCosmeMatch(' + pickItem.conditionId + ')">全部不匹配</button>' +
+                    '<button type="button" class="btn" onclick="closeCosmeMatchModal()">关闭</button>'
+                );
+            } else {
+                $('#cosmeMatchModalTitle').text('Cosme 匹配待确认（' + pendingCosmeMatches.length + ' 条）');
+                $('#cosmeMatchModalFooter').html(
+                    '<button type="button" class="btn" onclick="closeCosmeMatchModal()">关闭</button>'
+                );
+            }
+            var html = isPickMode
+                ? '<div class="hint" style="margin-bottom:12px;">相似度<strong> &gt;80% </strong>已自动关联；未匹配时展示 Cosme 全部搜索结果，请<strong>挑选关联</strong>或点<strong>全部不匹配</strong>。</div>'
+                : '<div class="hint" style="margin-bottom:12px;">相似度<strong> &gt;80% </strong>自动关联；<strong>≤80% </strong>展示 Cosme 首个搜索结果供确认。每条可<strong>确认关联</strong>或<strong>不进行关联</strong>。</div>';
+            html += '<table class="match-table"><thead><tr>' +
+                '<th>关键字</th><th>Cosme 产品</th><th>相似度</th><th>操作</th></tr></thead><tbody>';
+            var skipLabel = isPickMode ? '全部不匹配' : '不进行关联';
+            for (var i = 0; i < pendingCosmeMatches.length; i++) {
+                var item = pendingCosmeMatches[i];
+                var candidates = item.reviewCandidates && item.reviewCandidates.length
+                    ? item.reviewCandidates
+                    : (item.bestMatch ? [item.bestMatch] : []);
+                var rowSpan = Math.max(candidates.length, 1);
+                if (candidates.length === 0) {
+                    html += '<tr>' +
+                        '<td>#' + item.conditionId + '<br>' + escapeHtml(item.description || '') +
+                        '<br><small>' + escapeHtml(item.keyword || '') + '</small>' +
+                        (isPickMode ? '' : ('<br><button type="button" class="btn btn-danger" style="margin-top:8px;" onclick="skipCosmeMatch(' +
+                        item.conditionId + ')">' + skipLabel + '</button>')) +
+                        '</td>' +
+                        '<td colspan="3"><span class="cosme-unlinked">无候选产品</span></td></tr>';
+                    continue;
+                }
+                for (var j = 0; j < candidates.length; j++) {
+                    var c = candidates[j];
+                    var scoreClass = c.similarity > 80 ? 'match-score' : 'match-score review';
+                    var imgHtml = c.imageUrl
+                        ? '<img src="' + escapeHtml(c.imageUrl) + '" referrerpolicy="no-referrer" alt="">'
+                        : '';
+                    html += '<tr>';
+                    if (j === 0) {
+                        html += '<td rowspan="' + rowSpan + '">#' + item.conditionId + '<br>' +
+                            escapeHtml(item.description || '') +
+                            '<br><small>' + escapeHtml(item.keyword || '') + '</small>';
+                        if (!isPickMode) {
+                            html += '<br><button type="button" class="btn btn-danger" style="margin-top:8px;" onclick="skipCosmeMatch(' +
+                                item.conditionId + ')">' + skipLabel + '</button>';
+                        }
+                        html += '</td>';
+                    }
+                    html += '<td><div class="match-product-cell">' + imgHtml + '<div>' +
+                        '<a href="' + escapeHtml(c.productUrl || '#') + '" target="_blank" rel="noopener">' +
+                        escapeHtml(c.productName || '') + '</a>' +
+                        '<div class="match-ref">比对：' + escapeHtml(c.matchedReference || '') + '</div></div></div></td>' +
+                        '<td><span class="' + scoreClass + '">' + c.similarity + '%</span></td>' +
+                        '<td><button type="button" class="btn btn-primary" onclick="confirmCosmeMatchByIndex(' +
+                        item.conditionId + ',' + j + ')">' + (isPickMode ? '选择关联' : '确认关联') + '</button></td></tr>';
+                }
+            }
+            html += '</tbody></table>';
+            $('#cosmeMatchBody').html(html);
+            $('#cosmeMatchModal').addClass('open');
+        }
+
+        function closeCosmeMatchModal(force) {
+            if (!force && cosmeMatchModalMode === 'batch' && pendingCosmeMatches && pendingCosmeMatches.length > 0) {
+                if (!confirm('还有 ' + pendingCosmeMatches.length + ' 条待确认未处理。\n关闭后下次批量匹配仍会弹出，请尽量确认关联或点「不进行关联」。\n\n确定关闭？')) {
+                    return;
+                }
+            }
+            $('#cosmeMatchModal').removeClass('open');
+            pendingCosmeMatches = [];
+            cosmeMatchModalMode = 'batch';
+        }
+
+        function removePendingCosmeItem(conditionId) {
+            pendingCosmeMatches = pendingCosmeMatches.filter(function (item) {
+                return item.conditionId !== conditionId;
+            });
+            loadConditions(currentPage);
+            if (pendingCosmeMatches.length === 0) {
+                closeCosmeMatchModal(true);
+            } else {
+                openCosmeMatchModal();
+            }
+        }
+
+        function confirmCosmeMatchByIndex(conditionId, candidateIndex) {
+            var item = null;
+            for (var i = 0; i < pendingCosmeMatches.length; i++) {
+                if (pendingCosmeMatches[i].conditionId === conditionId) {
+                    item = pendingCosmeMatches[i];
+                    break;
+                }
+            }
+            if (!item) {
+                return;
+            }
+            var candidates = item.reviewCandidates && item.reviewCandidates.length
+                ? item.reviewCandidates
+                : (item.bestMatch ? [item.bestMatch] : []);
+            var candidate = candidates[candidateIndex];
+            if (!candidate) {
+                return;
+            }
+            confirmCosmeMatch(conditionId, candidate.productId, candidate.productUrl,
+                candidate.productName, candidate.imageUrl);
+        }
+
+        function confirmCosmeMatch(conditionId, productId, productUrl, productName, productImage) {
+            $.ajax({
+                url: '/mercari/cosmeMatch/confirm',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    conditionId: conditionId,
+                    cosmeProductId: productId,
+                    cosmeProductUrl: productUrl,
+                    cosmeProductName: productName,
+                    cosmeProductImage: productImage || null
+                }),
+                success: function () {
+                    removePendingCosmeItem(conditionId);
+                },
+                error: function () {
+                    alert('确认关联失败');
+                }
+            });
+        }
+
+        function skipCosmeMatch(conditionId) {
+            $.post('/mercari/cosmeMatch/skip', { conditionId: conditionId }, function () {
+                removePendingCosmeItem(conditionId);
+            }).fail(function () {
+                alert('操作失败');
+            });
+        }
+
+        $(function () {
+            loadConditions(1);
+            $('#createModal, #editModal, #cosmeMatchModal, #cosmeBatchMatchModal').on('click', function (e) {
+                if (e.target === this) {
+                    $(this).removeClass('open');
+                }
+            });
+        });
     </script>
 </head>
 
-<body style="zoom: 2">
-<!--th:text 为 Thymeleaf 属性，用于在展示文本-->
-<h1 th:text="煤炉助手">欢迎您访问静态页面 HTML</h1>
+<body>
+<div class="page">
+    <nav class="platform-nav">
+        <a href="/mercari" class="active">煤炉</a>
+        <a href="/yahoo">雅虎</a>
+        <a href="/rakuten">乐天</a>
+        <a href="/cosme" target="_blank">@cosme</a>
+    </nav>
+    <div class="page-header">
+        <h1>煤炉助手 · 关键字管理</h1>
+    </div>
 
-<!--<script type="text/javascript" src="/static/layui/layui.js" charset="utf-8"></script>-->
-
-<div class="row cl">
-    <label class="form-label col-xs-2 col-sm-2"><span class="c-red">*</span>商户编号：</label>
-    <div class="formControls col-xs-10 col-sm-10">
-        <select id="mercaribrand" name="mercaribrand" lay-search="" class="form-control input1"
-                onchange="brandchange()">
-            <option value="">请选择</option>
-            <option th:each="item:${brand}"
-                    th:value="${item}"
-                    th:text="${item}" value="1">
-            </option>
-
+    <div class="toolbar">
+        <label for="mercaribrand">品牌筛选</label>
+        <select id="mercaribrand" name="mercaribrand" onchange="filterChange()">
+            <option th:each="item:${brand}" th:value="${item}" th:text="${item}"></option>
         </select>
+        <label for="enableFilter">启用状态</label>
+        <select id="enableFilter" name="enableFilter" onchange="filterChange()">
+            <option value="">全部</option>
+            <option value="true">已启用</option>
+            <option value="false">已禁用</option>
+        </select>
+        <div class="toolbar-links">
+            <button type="button" class="btn btn-primary" onclick="openCreateModal()">新增关键字</button>
+            <button type="button" class="btn" onclick="openCosmeBatchMatchModal()">Cosme 批量匹配</button>
+            <a href="/cosme" target="_blank">@cosme 挑选</a>
+            <a href="/interest/item/-1" target="_blank">全部关注</a>
+            <span id="brandinterest"></span>
+        </div>
     </div>
-    <div>
-        <a href="/interest/item/-1" target="_blank">全部关注</a>
-    </div>
-    <div id="brandinterest">
 
+    <div class="pagination pagination-bar pagination-top"></div>
+
+    <div id="conditionList"></div>
+
+    <div class="pagination pagination-bar pagination-bottom"></div>
+</div>
+
+<div class="modal-overlay" id="createModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>新增关键字</h2>
+            <button type="button" class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <form id="createForm" onsubmit="submitCreate(); return false;">
+            <div class="modal-body">
+                <div class="form-field">
+                    <label for="createBrand">品牌</label>
+                    <input id="createBrand" list="brandList" type="text" placeholder="选择或输入品牌 slug，如 chanel" required>
+                    <datalist id="brandList"></datalist>
+                </div>
+                <div class="form-field">
+                    <label for="createDescription">描述</label>
+                    <input id="createDescription" type="text" maxlength="50" placeholder="中文简称，如：鸟笼" required>
+                </div>
+                <div class="form-field">
+                    <label for="createKeyword">日文关键字</label>
+                    <input id="createKeyword" type="text" placeholder="煤炉搜索用日文关键词" required>
+                </div>
+                <div class="form-field">
+                    <label for="createEnKeyword">英文关键字</label>
+                    <input id="createEnKeyword" type="text" placeholder="可选，用于 Google 识图等">
+                </div>
+                <div class="form-field">
+                    <label for="createDuration">查询间隔（分钟）</label>
+                    <input id="createDuration" type="number" min="1" value="60" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-check">
+                        <input id="createEnable" type="checkbox">
+                        创建后立即启用定时抓取
+                    </label>
+                    <div class="hint">默认类别：化妆品；状态：全新、接近全新</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeCreateModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
     </div>
 </div>
 
-
-<div class="table-responsive">
-    <table class="conditionTable" id="conditionTable" border='1'>
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>品牌</th>
-            <th>关键字</th>
-            <th>英文关键字</th>
-            <th>描述</th>
-            <th>是否启用</th>
-            <th>查询间隔</th>
-            <th>类别</th>
-            <th>查询状态</th>
-            <th>*</th>
-        </tr>
-        </thead>
-        <tbody id="conditionTableBody">
-
-        <tr th:each="searchCondition:${searchConditions}">
-            <td th:text="${searchCondition.id}"></td>
-            <td>[[${searchCondition.brand}]]</td>
-            <td>
-                <a th:id="'keyword' + ${searchCondition.id}"
-                   th:href="'https://jp.mercari.com/search?keyword=' + ${searchCondition.keyword} + '&order=desc&sort=created_time&status=on_sale&category_id=6&item_conditon_id=1'"
-                   th:text="${searchCondition.keyword}" target='_blank'></a>
-
-                <button th:attr="data-clipboard-text=${searchCondition.keyword}" class="btn">
-                    点击复制
-                </button>
-
-            </td>
-            <td>
-
-                <a th:id="'enkeyword' + ${searchCondition.id}"
-                   th:href="'https://www.google.com/search?sxsrf=AB5stBjB_0AJWYi6NWyzh7kTiQaKk_lhPA:1689659696559&tbm=isch&sa=X&ved=2ahUKEwjiuITwyJeAAxWznFYBHZ3qCyIQ0pQJegQIDRAB&biw=1020&bih=645&dpr=1&q=' + ${searchCondition.enKeyword}"
-                   th:text="${searchCondition.enKeyword}" target='_blank'></a>
-
-                <button th:attr="data-clipboard-text=${searchCondition.enKeyword}" class="btn">
-                    点击复制
-                </button>
-
-            </td>
-            <td th:text="${searchCondition.description}"></td>
-            <td th:text="${searchCondition.enable}==1?'是':'否'"></td>
-            <td th:text="${searchCondition.duration}"></td>
-            <td>
-                <p>
-                    <input id="HUAZHUANGPIN" type="checkbox" value="HUAZHUANGPIN" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPIN')}"
-                           onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPIN">化妆品/香水/美容</label>
-                </p>
-                <p>
-                    <input id="DIZHUANGALL" type="checkbox" value="DIZHUANGALL" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('DIZHUANGALL')}"
-                           onclick="OncheckCategoryBox(this)"><label for="DIZHUANGALL">底妆全部</label>
-                    <input id="JICHU" type="checkbox" value="JICHU" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('JICHU')}"
-                           onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPIN">基础</label>
-                    <input id="DIZHUANG" type="checkbox" value="DIZHUANG" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('DIZHUANG')}"
-                           onclick="OncheckCategoryBox(this)"><label for="DIZHUANG">底妆</label>
-                    <input id="XIANGFEN" type="checkbox" value="XIANGFEN" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('XIANGFEN')}"
-                           onclick="OncheckCategoryBox(this)"><label for="XIANGFEN">香粉</label>
-                    <input id="DIZHUANGOTHER" type="checkbox" value="DIZHUANGOTHER" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('DIZHUANGOTHER')}"
-                           onclick="OncheckCategoryBox(this)"><label for="DIZHUANGOTHER">底妆其他</label>
-                </p>
-                <p>
-                    <input id="HUAZHUANGPINALL" type="checkbox" value="HUAZHUANGPINALL" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPINALL')}"
-                           onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPINALL">化妆品全部</label>
-                    <input id="YANYING" type="checkbox" value="YANYING" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('YANYING')}"
-                           onclick="OncheckCategoryBox(this)"><label for="YANYING">眼影</label>
-                    <input id="YANXIANBI" type="checkbox" value="YANXIANBI" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('YANXIANBI')}"
-                           onclick="OncheckCategoryBox(this)"><label for="YANXIANBI">眼线笔</label>
-                    <input id="KOUHONG" type="checkbox" value="KOUHONG" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('KOUHONG')}"
-                           onclick="OncheckCategoryBox(this)"><label for="KOUHONG">口红</label>
-                    <input id="CHUNCAI" type="checkbox" value="CHUNCAI" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('CHUNCAI')}"
-                           onclick="OncheckCategoryBox(this)"><label for="CHUNCAI">唇彩</label>
-                    <input id="LIANJIA" type="checkbox" value="LIANJIA" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('LIANJIA')}"
-                           onclick="OncheckCategoryBox(this)"><label for="LIANJIA">脸颊</label>
-                    <input id="LIANSE" type="checkbox" value="LIANSE" th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('LIANSE')}"
-                           onclick="OncheckCategoryBox(this)"><label for="LIANSE">脸色</label>
-                    <input id="HUAZHUANGPINOTHER" type="checkbox" value="HUAZHUANGPINOTHER"
-                           th:name="${searchCondition.id}"
-                           th:attr="checked=${searchCondition.categoryList.contains('HUAZHUANGPINOTHER')}"
-                           onclick="OncheckCategoryBox(this)"><label for="HUAZHUANGPINOTHER">化妆品其他</label>
-                </p>
-            </td>
-            <td>
-                <input id="QUANXIN" type="checkbox" value="QUANXIN" th:name="${searchCondition.id}"
-                       th:attr="checked=${searchCondition.conditionList.contains('QUANXIN')}"
-                       onclick="OncheckConditionBox(this)"><label for="QUANXIN">全新</label>
-                <input id="JINQUANXIN" type="checkbox" value="JINQUANXIN" th:name="${searchCondition.id}"
-                       th:attr="checked=${searchCondition.conditionList.contains('JINQUANXIN')}"
-                       onclick="OncheckConditionBox(this)"><label for="JINQUANXIN">接近全新</label>
-            </td>
-            <td>
-                <a class="btn btn-sm btn-primary" th:href="@{/interest/item/}+${searchCondition.id}" target="_blank">已关注产品</a>
-                <!--                <button th:attr="del_uri=@{/mercari/setInterest}+${emp.id}" class="btn btn-sm btn-danger deleteBtn">删除-->
-                <!--                </button>-->
-            </td>
-        </tr>
-        </tbody>
-    </table>
+<div class="modal-overlay" id="editModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>编辑关键字</h2>
+            <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form onsubmit="submitEdit(); return false;">
+            <div class="modal-body">
+                <input type="hidden" id="editConditionId">
+                <div class="form-field">
+                    <label>当前记录</label>
+                    <div id="editDescription" class="hint" style="font-size:14px;color:var(--text);"></div>
+                </div>
+                <div class="form-field">
+                    <label for="editKeyword">日文关键字</label>
+                    <input id="editKeyword" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="editEnKeyword">英文关键字</label>
+                    <input id="editEnKeyword" type="text" placeholder="留空则清除英文关键字">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeEditModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<script>
-    var clipboard = new ClipboardJS('.btn');
+<div class="modal-overlay" id="cosmeBatchMatchModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Cosme 批量匹配</h2>
+            <button type="button" class="modal-close" onclick="closeCosmeBatchMatchModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label>处理范围</label>
+                <div class="form-check-group">
+                    <div class="cosme-batch-option">
+                        <label class="form-check">
+                            <input type="radio" name="cosmeBatchMode" value="limit" checked onchange="onCosmeBatchModeChange()">
+                            指定数量
+                        </label>
+                        <input type="number" id="cosmeBatchLimit" value="30" min="1" max="9999">
+                        <span class="hint">条未关联关键字</span>
+                    </div>
+                    <label class="form-check">
+                        <input type="radio" name="cosmeBatchMode" value="all" onchange="onCosmeBatchModeChange()">
+                        全部未关联
+                    </label>
+                </div>
+            </div>
+            <div class="form-field">
+                <div class="hint">
+                    按当前品牌筛选，从 ID 新到旧处理。<br>
+                    相似度 &gt;80% 自动关联；≤80% 弹窗确认首个搜索结果。<br>
+                    Cosme 无结果标记「暂无匹配」；「不进行关联」的不再重复出现。<br>
+                    选择「全部」时耗时较长，请耐心等待。
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="closeCosmeBatchMatchModal()">取消</button>
+            <button type="button" class="btn btn-primary" id="cosmeBatchSubmitBtn" onclick="submitCosmeBatchMatch()">开始匹配</button>
+        </div>
+    </div>
+</div>
 
-    clipboard.on('success', function (e) {
-        console.info('Action:', e.action);
-        console.info('Text:', e.text);
-        console.info('Trigger:', e.trigger);
-    });
-
-    clipboard.on('error', function (e) {
-        console.info('Action:', e.action);
-        console.info('Text:', e.text);
-        console.info('Trigger:', e.trigger);
-    });
-</script>
-
+<div class="modal-overlay" id="cosmeMatchModal">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 id="cosmeMatchModalTitle">Cosme 匹配待确认</h2>
+            <button type="button" class="modal-close" onclick="closeCosmeMatchModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="cosmeMatchBody"></div>
+        <div class="modal-footer" id="cosmeMatchModalFooter">
+            <button type="button" class="btn" onclick="closeCosmeMatchModal()">关闭</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

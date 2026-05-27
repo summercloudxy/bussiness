@@ -6,6 +6,7 @@ import com.xy.bussiness.mercari.mybean.MercariSearchCondition;
 import com.xy.bussiness.mercari.mybean.MercariSellerSearchCondition;
 import com.xy.bussiness.mercari.mybean.SellerItemRecord;
 import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.NotificationLinks;
 import com.xy.bussiness.notification.WindowsNotification;
 import com.xy.bussiness.notification.wechat.NotifyImageUrls;
 import com.xy.bussiness.notification.wechat.WeChatPlatform;
@@ -39,14 +40,16 @@ public class NotificationService {
 
 //        executorService.execute(()->windowsNotification.display("煤炉:" + searchCondition.getBrand() + description + "上新啦",getNewWindowsContent(newItems)));
         String topic = "煤炉:" + searchCondition.getBrand() + description + "上新啦";
-        return notifySender.send(topic, getNewMailContent(newItems), getNewWeChatContent(newItems),
+        return notifySender.send(topic, getNewMailContent(searchCondition, newItems),
+                getNewWeChatContent(searchCondition, newItems),
                 buildMercariNewsArticles(newItems, true), WeChatPlatform.MERCARI, 0);
     }
 
 
     public boolean sendPrice(MercariSearchCondition searchCondition, List<ItemRecord> priceItems) throws Exception {
         String topic = "煤炉:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦";
-        return notifySender.send(topic, getPriceMailContent(priceItems), getPriceWeChatContent(priceItems),
+        return notifySender.send(topic, getPriceMailContent(searchCondition, priceItems),
+                getPriceWeChatContent(searchCondition, priceItems),
                 buildMercariNewsArticles(priceItems, false), WeChatPlatform.MERCARI, 0);
     }
 
@@ -62,7 +65,7 @@ public class NotificationService {
         return stringBuilder.toString();
     }
 
-    public String getNewMailContent(List<ItemRecord> recordList) {
+    public String getNewMailContent(MercariSearchCondition searchCondition, List<ItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (ItemRecord record : recordList) {
@@ -126,22 +129,23 @@ public class NotificationService {
 //            stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/setInterest?interest=1&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>添加关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/mercari/setInterest?interest=1&itemId=" + record.getMercariItemId())).append("'>添加关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "mercari",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
 
 
- public String getPriceMailContent(List<ItemRecord> recordList) {
+ public String getPriceMailContent(MercariSearchCondition searchCondition, List<ItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (ItemRecord record : recordList) {
@@ -203,33 +207,38 @@ public class NotificationService {
 
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/mercari/setInterest?interest=0&itemId=");
-            stringBuilder.append(record.getMercariItemId());
-            stringBuilder.append("'>不再关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/mercari/setInterest?interest=0&itemId=" + record.getMercariItemId())).append("'>不再关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "mercari",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
-    public String getNewWeChatContent(List<ItemRecord> recordList) {
+    public String getNewWeChatContent(MercariSearchCondition searchCondition, List<ItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (ItemRecord record : recordList) {
             appendMercariItemMarkdown(sb, record, true);
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "mercari",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
-    public String getPriceWeChatContent(List<ItemRecord> recordList) {
+    public String getPriceWeChatContent(MercariSearchCondition searchCondition, List<ItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (ItemRecord record : recordList) {
             String priceLine = "- 价格：" + record.getOriginPrice() + " → " + record.getCurrentPrice() + "\n";
             appendMercariItemMarkdown(sb, record, false, priceLine);
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "mercari",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
@@ -253,8 +262,8 @@ public class NotificationService {
         WeChatMarkdownLinks.appendThreeLinks(sb,
                 mercariItemUrl(record),
                 SHUNTONG_MEILU_URL + record.getMercariItemId(),
-                "https://" + notifyHost + "/mercari/setInterest?interest=" + interest
-                        + "&itemId=" + record.getMercariItemId(),
+                NotificationLinks.url(notifyHost, "/mercari/setInterest?interest=" + interest
+                        + "&itemId=" + record.getMercariItemId()),
                 interestLabel);
         sb.append("\n");
     }

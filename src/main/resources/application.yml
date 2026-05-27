@@ -1,3 +1,7 @@
+# =============================================================================
+# 业务应用配置 — 详细说明见项目根目录 docs/配置说明.md
+# =============================================================================
+
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/mercari?serverTimezone=Asia/Shanghai&characterEncoding=utf-8&rewriteBatchedStatements=true&useSSL=false&allowPublicKeyRetrieval=true
@@ -18,9 +22,11 @@ mybatis:
   mapper-locations: mappings/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+
 server:
   port: 8111
 
+# --- 爬虫平台总开关（false 时不启动该平台定时任务）---
 mercari:
   enable: true
 
@@ -30,42 +36,48 @@ rakuten:
 yahoo:
   enable: true
 
+# --- HTTP 代理：访问日本站点时使用；企业微信/IMAP 建议关闭 ---
 network:
   proxy:
     enabled: true
     host: 127.0.0.1
     port: 7897
 
+# --- 通知链接根地址（须含 http:// 或 https://，用于邮件/微信内链接）---
 notification:
-  host: 3yd4544930.zicp.fun
+  host: http://summercloud117.cn
 
-# 微信通知（与邮件并行，微信失败不影响入库逻辑）
-# type: pushplus — 在 https://www.pushplus.plus 获取 token，扫码绑定微信
-# type: wework   — 企业微信群机器人 webhook 的 key
+# --- 微信通知：与邮件并行；失败不影响入库。详见 docs/配置说明.md §5 ---
 wechat:
   enabled: true
+  # pushplus | wework（企业微信群机器人）
   type: wework
+  # type=pushplus 时填写
   token:
-  # 仅填 key 即可，也支持粘贴完整 webhook URL
+  # type=wework：填 key 或完整 webhook URL
   webhook-key: 131d5793-da4a-41a5-acc0-4eb1e3b97fcf
-  # 各平台是否发微信（默认仅煤炉；邮件不受此配置影响）
+  # 分平台是否发微信（默认仅煤炉；不影响邮件）
   platforms:
     mercari: true
     yahoo: false
     rakuten: false
 
-# 邮件：enabled 控制是否发邮件；from=发信 SMTP，to=收信地址
+# --- 邮件通知与 QQ 发件箱清理。详见 docs/配置说明.md §6 ---
 mail:
+  # 是否发送邮件（false 时可仅走微信）
   enabled: true
+  # 发信 / 收信账号：qq | netease
   from: qq
   to: qq
   cleanup:
     enabled: true
+    # 每天 03:00 上海时区；Cron 六段式：秒 分 时 日 月 周
     cron: "0 0 3 * * ?"
     provider: qq
     sent-folder: 已发送
     batch-size: 200
-    # 仅删本应用邮件：优先匹配 X-Bussiness-Notification 头；无头时用主题关键词兜底
+    max-batches: 50
+    # 仅删本程序邮件：头 X-Bussiness-Notification=1；无头时用主题关键词
     match-subject-keywords: true
     subject-keywords:
       - 上新啦
@@ -79,8 +91,7 @@ mail:
     password: xuzapehbzctdcaja
     imap-host: imap.qq.com
     imap-port: 993
-    # 若 IMAP 授权码与 SMTP 不同，在此单独配置
-    # imap-password: your_imap_auth_code
+    # imap-password: 与 SMTP 授权码不同时单独填写
   netease:
     host: smtp.163.com
     port: 465

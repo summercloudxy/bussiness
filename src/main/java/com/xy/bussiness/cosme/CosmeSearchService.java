@@ -18,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,6 +32,10 @@ public class CosmeSearchService {
 
     private static final Charset SHIFT_JIS = Charset.forName("Shift_JIS");
     private static final int PAGE_SIZE = 10;
+
+    public static int getPageSize() {
+        return PAGE_SIZE;
+    }
     private static final Pattern TOTAL_PATTERN = Pattern.compile("商品検索結果[^0-9]*(\\d+)\\s*件");
     private static final Pattern PRODUCT_BLOCK_PATTERN = Pattern.compile(
             "<div class=\"mdl-pdt-idv clearfix\"[^>]*>(.*?)(?=<div class=\"mdl-pdt-idv|<div id=\"mdl-pager\"|<!-- /mdl-pdt-idv -->|<!-- /cnt-list -->)",
@@ -47,13 +52,13 @@ public class CosmeSearchService {
             "id=\"nrw-ctg\"(.*?)id=\"nrw-efct\"",
             Pattern.DOTALL);
     private static final Pattern CATEGORY_LINK_PATTERN = Pattern.compile(
-            "cosmeet\\.cosme\\.net/product/search/srt/\\d+/fw/[^\"/]+/itm/(\\d+)\">([^<]+)<span>\\((\\d+)\\)</span>");
+            "cosmeet\\.cosme\\.net/product/search/srt/\\d+/fw/[^\"/]+/itm/(\\d+)\"[^>]*>([^<]+)<span>\\((\\d+)\\)</span>");
     private static final Pattern CATEGORY_DISABLED_PATTERN = Pattern.compile(
             "<p><span>([^<]+)<span>\\((\\d+)\\)</span></span></p>");
     private static final Pattern CATEGORY_CURRENT_PATTERN = Pattern.compile(
             "class=\"current\">([^<]+)<span>\\((\\d+)\\)</span>");
-    private static final Pattern CATEGORY_LV2_SECTION_PATTERN = Pattern.compile(
-            "<ul class=\"lv2\">(.*?)</ul>", Pattern.DOTALL);
+    private static final String CATEGORY_LV2_OPEN = "<ul class=\"lv2\">";
+    private static final String UL_CLOSE = "</ul>";
 
     public CosmeSearchResult search(String keyword, Integer page, String categoryId) {
         CosmeSearchResult result = new CosmeSearchResult();
@@ -74,19 +79,16 @@ public class CosmeSearchService {
         result.setCategories(defaultCategories(trimmedCategoryId));
 
         try {
-            String html = fetchHtml(url);
-            if (StringUtils.isBlank(html)) {
-                return result;
+            List<CosmeProduct> products = fetchAndParse(url, result, trimmedCategoryId);
+            if (products.isEmpty()) {
+                String utf8Url = buildSearchUrlUtf8(trimmedKeyword, currentPage, trimmedCategoryId);
+                if (!utf8Url.equals(url)) {
+                    products = fetchAndParse(utf8Url, result, trimmedCategoryId);
+                    if (!products.isEmpty()) {
+                        result.setCosmeUrl(utf8Url);
+                    }
+                }
             }
-            Matcher totalMatcher = TOTAL_PATTERN.matcher(html);
-            if (totalMatcher.find()) {
-                int total = Integer.parseInt(totalMatcher.group(1));
-                result.setTotal(total);
-                result.setTotalPages((total + PAGE_SIZE - 1) / PAGE_SIZE);
-            }
-            result.setCategories(parseCategories(html, trimmedCategoryId));
-            List<CosmeProduct> products = parseProducts(html);
-            cosmeProductAddedService.markAddedProducts(products);
             result.setProducts(products);
         } catch (Exception e) {
             log.error("抓取 @cosme 搜索页失败, keyword={}, categoryId={}, page={}",
@@ -121,16 +123,6 @@ public class CosmeSearchService {
 
         appendCategoriesInDocumentOrder(categories, section, selectedCategoryId);
 
-        Matcher currentMatcher = CATEGORY_CURRENT_PATTERN.matcher(section);
-        while (currentMatcher.find()) {
-            String nameJa = cleanText(currentMatcher.group(1));
-            int count = Integer.parseInt(currentMatcher.group(2));
-            if (containsCategory(categories, nameJa)) {
-                continue;
-            }
-            categories.add(buildCategoryFilter(null, nameJa, count, 1, false, selectedCategoryId));
-        }
-
         if (categories.size() == 1) {
             String fullSection = html;
             Matcher fullSectionMatcher = CATEGORY_SECTION_PATTERN.matcher(html);
@@ -159,35 +151,120 @@ public class CosmeSearchService {
         }
         int index = 0;
         while (index < section.length()) {
-            Matcher lv2Matcher = CATEGORY_LV2_SECTION_PATTERN.matcher(section);
-            lv2Matcher.region(index, section.length());
-            if (lv2Matcher.find()) {
-                appendCategoryLinks(categories, section.substring(index, lv2Matcher.start()), selectedCategoryId, 1);
-                appendCategoryLinks(categories, lv2Matcher.group(1), selectedCategoryId, 2);
-                index = lv2Matcher.end();
-            } else {
-                appendCategoryLinks(categories, section.substring(index), selectedCategoryId, 1);
+            int lv2Start = section.indexOf(CATEGORY_LV2_OPEN, index);
+            if (lv2Start < 0) {
+                appendCategorySegmentInOrder(categories, section.substring(index), selectedCategoryId, 1);
                 break;
             }
+            appendCategorySegmentInOrder(categories, section.substring(index, lv2Start), selectedCategoryId, 1);
+            int contentStart = lv2Start + CATEGORY_LV2_OPEN.length();
+            int lv2End = findMatchingUlEnd(section, contentStart);
+            if (lv2End < 0) {
+                appendCategorySegmentInOrder(categories, section.substring(index), selectedCategoryId, 1);
+                break;
+            }
+            String lv2Content = removeNestedUlBlocks(section.substring(contentStart, lv2End));
+            appendCategorySegmentInOrder(categories, lv2Content, selectedCategoryId, 2);
+            index = lv2End + UL_CLOSE.length();
         }
     }
 
-    private void appendCategoryLinks(List<CosmeCategoryFilter> categories, String section,
-                                     String selectedCategoryId, int level) {
-        Matcher linkMatcher = CATEGORY_LINK_PATTERN.matcher(section);
+    private int findMatchingUlEnd(String html, int contentStart) {
+        int depth = 1;
+        int pos = contentStart;
+        while (pos < html.length() && depth > 0) {
+            int nextOpen = html.indexOf("<ul", pos);
+            int nextClose = html.indexOf(UL_CLOSE, pos);
+            if (nextClose < 0) {
+                return -1;
+            }
+            if (nextOpen >= 0 && nextOpen < nextClose) {
+                depth++;
+                pos = html.indexOf('>', nextOpen) + 1;
+            } else {
+                depth--;
+                if (depth == 0) {
+                    return nextClose;
+                }
+                pos = nextClose + UL_CLOSE.length();
+            }
+        }
+        return -1;
+    }
+
+    private String removeNestedUlBlocks(String html) {
+        StringBuilder result = new StringBuilder();
+        int index = 0;
+        while (index < html.length()) {
+            int ulStart = html.indexOf("<ul", index);
+            if (ulStart < 0) {
+                result.append(html.substring(index));
+                break;
+            }
+            result.append(html.substring(index, ulStart));
+            int contentStart = html.indexOf('>', ulStart) + 1;
+            int ulEnd = findMatchingUlEnd(html, contentStart);
+            if (ulEnd < 0) {
+                result.append(html.substring(ulStart));
+                break;
+            }
+            index = ulEnd + UL_CLOSE.length();
+        }
+        return result.toString();
+    }
+
+    private void appendCategorySegmentInOrder(List<CosmeCategoryFilter> categories, String segment,
+                                              String selectedCategoryId, int level) {
+        if (StringUtils.isBlank(segment)) {
+            return;
+        }
+        List<CategoryToken> tokens = new ArrayList<>();
+        Matcher currentMatcher = CATEGORY_CURRENT_PATTERN.matcher(segment);
+        while (currentMatcher.find()) {
+            CategoryToken token = new CategoryToken();
+            token.start = currentMatcher.start();
+            token.current = true;
+            token.nameJa = currentMatcher.group(1);
+            token.count = Integer.parseInt(currentMatcher.group(2));
+            tokens.add(token);
+        }
+        Matcher linkMatcher = CATEGORY_LINK_PATTERN.matcher(segment);
         while (linkMatcher.find()) {
-            String id = linkMatcher.group(1);
-            if (containsCategoryId(categories, id)) {
+            CategoryToken token = new CategoryToken();
+            token.start = linkMatcher.start();
+            token.current = false;
+            token.id = linkMatcher.group(1);
+            token.nameJa = linkMatcher.group(2);
+            token.count = Integer.parseInt(linkMatcher.group(3));
+            tokens.add(token);
+        }
+        tokens.sort(Comparator.comparingInt(token -> token.start));
+        for (CategoryToken token : tokens) {
+            if (token.current) {
+                String nameJa = cleanText(token.nameJa);
+                if (containsCategory(categories, nameJa)) {
+                    continue;
+                }
+                CosmeCategoryFilter filter = buildCategoryFilter(selectedCategoryId, nameJa, token.count, level,
+                        true, selectedCategoryId);
+                filter.setSelected(true);
+                categories.add(filter);
                 continue;
             }
-            categories.add(buildCategoryFilter(
-                    id,
-                    linkMatcher.group(2),
-                    Integer.parseInt(linkMatcher.group(3)),
-                    level,
-                    true,
+            if (containsCategoryId(categories, token.id)) {
+                continue;
+            }
+            categories.add(buildCategoryFilter(token.id, token.nameJa, token.count, level, true,
                     selectedCategoryId));
         }
+    }
+
+    private static final class CategoryToken {
+        private int start;
+        private boolean current;
+        private String id;
+        private String nameJa;
+        private int count;
     }
 
     private CosmeCategoryFilter buildCategoryFilter(String id, String nameJa, int count, int level,
@@ -220,6 +297,47 @@ public class CosmeSearchService {
             }
         }
         return false;
+    }
+
+    private List<CosmeProduct> fetchAndParse(String url, CosmeSearchResult result, String trimmedCategoryId)
+            throws Exception {
+        String html = fetchHtml(url);
+        if (StringUtils.isBlank(html)) {
+            return new ArrayList<>();
+        }
+        Matcher totalMatcher = TOTAL_PATTERN.matcher(html);
+        if (totalMatcher.find()) {
+            int total = Integer.parseInt(totalMatcher.group(1));
+            result.setTotal(total);
+            result.setTotalPages((total + PAGE_SIZE - 1) / PAGE_SIZE);
+        }
+        result.setCategories(parseCategories(html, trimmedCategoryId));
+        List<CosmeProduct> products = parseProducts(html);
+        cosmeProductAddedService.markAddedProducts(products);
+        return products;
+    }
+
+    private String buildSearchUrlUtf8(String keyword, int page, String categoryId) {
+        String encodedKeyword = encodeKeywordUtf8(keyword);
+        if (StringUtils.isBlank(categoryId)) {
+            return "https://cosmeet.cosme.net/product/search?fw=" + encodedKeyword + "&page=" + page;
+        }
+        StringBuilder url = new StringBuilder("https://cosmeet.cosme.net/product/search/srt/4/fw/")
+                .append(encodedKeyword)
+                .append("/itm/")
+                .append(categoryId);
+        if (page > 1) {
+            url.append("/page/").append(page);
+        }
+        return url.toString();
+    }
+
+    private String encodeKeywordUtf8(String keyword) {
+        try {
+            return URLEncoder.encode(keyword, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return keyword;
+        }
     }
 
     private String buildSearchUrl(String keyword, int page, String categoryId) {

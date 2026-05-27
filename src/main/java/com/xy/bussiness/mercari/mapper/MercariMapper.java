@@ -14,6 +14,16 @@ public interface MercariMapper {
     @Select("select * from mercari_item_record where search_condition_id = #{searchConditionId}")
     List<ItemRecord> getItemRecordsByCondition(@Param("searchConditionId") Integer searchConditionId);
 
+    @Select("<script>" +
+            "SELECT * FROM (" +
+            "SELECT *, ROW_NUMBER() OVER (PARTITION BY search_condition_id ORDER BY COALESCE(record_create_date, create_date) DESC) AS rn " +
+            "FROM mercari_item_record WHERE search_condition_id IN " +
+            "<foreach collection='conditionIds' item='id' open='(' separator=',' close=')'>#{id}</foreach>" +
+            ") ranked WHERE ranked.rn &lt;= #{limit}" +
+            "</script>")
+    List<ItemRecord> getLatestItemsByConditionIds(@Param("conditionIds") List<Integer> conditionIds,
+                                                  @Param("limit") int limit);
+
 
     @Select("select * from mercari_item_record where seller_id = #{sellerId}")
     List<ItemRecord> getItemRecordsBySeller(@Param("sellerId") String sellerId);

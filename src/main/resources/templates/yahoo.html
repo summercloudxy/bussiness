@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雅虎助手 · 关键字管理</title>
+    <link rel="stylesheet" th:href="@{/css/platform-common.css}">
+    <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
+    <script th:src="@{/js/platform-cosme-match.js}"></script>
+    <script type="text/javascript">
+        var API_PREFIX = '/yahoo';
+        var currentPage = 1;
+        var pageSize = 10;
+        var totalPages = 1;
+        var totalCount = 0;
+        var conditionsById = {};
+
+        function escapeHtml(text) {
+            if (text == null) {
+                return '';
+            }
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeAttr(text) {
+            return escapeHtml(text).replace(/"/g, '&quot;');
+        }
+
+        function googleSearchUrl(q) {
+            return 'https://www.google.com/search?q=' + encodeURIComponent(q || '');
+        }
+
+        function copyText(text) {
+            if (!text) {
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    alert('已复制');
+                });
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                alert('已复制');
+            }
+        }
+
+        function renderSearchCategoryChips(searchCategory) {
+            if (!searchCategory) {
+                return '';
+            }
+            var parts = searchCategory.split(',');
+            var html = '';
+            for (var i = 0; i < parts.length; i++) {
+                var cat = parts[i].trim();
+                if (cat) {
+                    html += '<span>' + escapeHtml(cat) + '</span>';
+                }
+            }
+            return html;
+        }
+
+        function renderLatestItems(items) {
+            if (!items || items.length === 0) {
+                return '<div class="latest-items"><span class="empty-tip">暂无抓取到的产品</span></div>';
+            }
+            var html = '<div class="latest-items">';
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                var href = 'https://auctions.yahoo.co.jp/jp/auction/' + encodeURIComponent(item.itemId);
+                html += '<a href="' + href + '" target="_blank" rel="noopener" title="' + escapeHtml(item.title) + '">' +
+                    '<img referrerpolicy="no-referrer" src="' + escapeHtml(item.imageUrl) + '" alt="' + escapeHtml(item.title) + '">' +
+                    '</a>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function cosmeSearchUrl(keyword) {
+            return 'https://cosmeet.cosme.net/product/search?fw=' + encodeURIComponent(keyword || '');
+        }
+
+        function renderCosmeField(condition) {
+            var html = '<div><span class="field-label">@cosme</span><div class="field-value cosme-field-wrap">';
+            if (condition.cosmeProductImage) {
+                html += '<img class="cosme-thumb" src="' + escapeHtml(condition.cosmeProductImage) + '" referrerpolicy="no-referrer" alt="">';
+            }
+            html += '<div>';
+            if (condition.cosmeProductId === '-1') {
+                html += '<span class="cosme-unlinked">已跳过关联</span><br>';
+            } else if (condition.cosmeProductId === '-2') {
+                html += '<span class="cosme-unlinked">暂无匹配（批量已尝试）</span><br>';
+            } else if (condition.cosmeProductUrl) {
+                var label = condition.cosmeProductName || condition.cosmeProductId || '@cosme 详情';
+                html += '<a href="' + escapeHtml(condition.cosmeProductUrl) + '" target="_blank" rel="noopener">' +
+                    escapeHtml(label) + '</a><br>';
+            } else {
+                html += '<span class="cosme-unlinked">未关联</span><br>';
+            }
+            html += '<a class="btn" href="' + cosmeSearchUrl(condition.keyword) + '" target="_blank" rel="noopener">Cosme搜索</a> ';
+            if (!condition.cosmeProductUrl && condition.cosmeProductId !== '-1' && condition.cosmeProductId !== '-2') {
+                html += '<button type="button" class="btn" onclick="matchCosmeOne(' + condition.id + ')">匹配</button>';
+            } else {
+                html += '<button type="button" class="btn" onclick="rematchCosmeOne(' + condition.id + ')">重新匹配</button>';
+            }
+            html += '</div></div></div>';
+            return html;
+        }
+
+        function renderActions(condition) {
+            var html = '<div class="card-actions">';
+            if (condition.enable) {
+                html += '<button type="button" class="btn" onclick="disableCondition(' + condition.id + ')">禁用</button>';
+            } else {
+                html += '<button type="button" class="btn btn-primary" onclick="enableCondition(' + condition.id + ')">启用</button>';
+            }
+            html += '<button type="button" class="btn" onclick="openEditModal(' + condition.id + ')">编辑关键字</button>';
+            html += '<button type="button" class="btn" onclick="editDuration(' + condition.id + ',' + condition.duration + ')">修改间隔</button>';
+            html += '<button type="button" class="btn btn-danger" onclick="deleteCondition(' + condition.id + ')">删除</button>';
+            html += '<a class="btn btn-primary" href="' + API_PREFIX + '/interest/item/' + condition.id + '" target="_blank">已关注产品</a>';
+            html += '</div>';
+            return html;
+        }
+
+        function renderCard(condition) {
+            var badge = condition.enable
+                ? '<span class="badge badge-on">已启用</span>'
+                : '<span class="badge badge-off">已禁用</span>';
+            var searchUrl = 'https://auctions.yahoo.co.jp/search/search?p=' + encodeURIComponent(condition.keyword || '');
+
+            return '<div class="condition-card">' +
+                '<div class="card-main">' +
+                '<div class="card-top">' +
+                '<div class="card-title">' +
+                '<span class="card-id">#' + condition.id + '</span>' +
+                '<span class="card-brand">' + escapeHtml(condition.brand) + '</span>' +
+                '<span class="card-desc">' + escapeHtml(condition.description) + '</span>' +
+                badge +
+                '</div>' +
+                '<div class="meta-chips">' +
+                '<span>间隔 ' + (condition.duration || 0) + ' 分钟</span>' +
+                '<span>每页 ' + (condition.pageSize || 0) + ' 条</span>' +
+                renderSearchCategoryChips(condition.searchCategory) +
+                '</div></div>' +
+                '<div class="keyword-row">' +
+                '<div><span class="field-label">关键字</span><div class="field-value">' +
+                '<a href="' + searchUrl + '" target="_blank" rel="noopener">' + escapeHtml(condition.keyword) + '</a>' +
+                '<button type="button" class="btn btn-copy" data-copy="' + escapeAttr(condition.keyword) + '">复制</button>' +
+                '<a class="btn" href="' + googleSearchUrl(condition.keyword) + '" target="_blank" rel="noopener">Google</a></div></div>' +
+                renderCosmeField(condition) +
+                '</div>' +
+                '<div style="margin-bottom:12px;"><span class="field-label">最新产品</span>' +
+                renderLatestItems(condition.latestItems) + '</div>' +
+                renderActions(condition) +
+                '</div></div>';
+        }
+
+        function buildPageNumbersHtml() {
+            if (totalPages <= 1) {
+                return '';
+            }
+            var pages = [];
+            var start = Math.max(1, currentPage - 2);
+            var end = Math.min(totalPages, currentPage + 2);
+            if (start > 1) {
+                pages.push(1);
+                if (start > 2) {
+                    pages.push('...');
+                }
+            }
+            for (var p = start; p <= end; p++) {
+                pages.push(p);
+            }
+            if (end < totalPages) {
+                if (end < totalPages - 1) {
+                    pages.push('...');
+                }
+                pages.push(totalPages);
+            }
+            var html = '';
+            for (var i = 0; i < pages.length; i++) {
+                var item = pages[i];
+                if (item === '...') {
+                    html += '<span class="page-num ellipsis">…</span>';
+                } else if (item === currentPage) {
+                    html += '<span class="page-num active">' + item + '</span>';
+                } else {
+                    html += '<button type="button" class="page-num" onclick="goToPage(' + item + ')">' + item + '</button>';
+                }
+            }
+            return html;
+        }
+
+        function renderPaginationBar() {
+            var pageNums = buildPageNumbersHtml();
+            var html =
+                '<div class="pagination-left">' +
+                '<button type="button" onclick="changePage(-1)" ' + (currentPage <= 1 ? 'disabled' : '') + '>上一页</button>' +
+                pageNums +
+                '<button type="button" onclick="changePage(1)" ' + (currentPage >= totalPages ? 'disabled' : '') + '>下一页</button>' +
+                '</div>' +
+                '<div class="pagination-right">' +
+                '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + totalCount + ' 条</span>' +
+                '<label>每页 <select onchange="changePageSize(this.value)">' +
+                '<option value="10"' + (pageSize === 10 ? ' selected' : '') + '>10</option>' +
+                '<option value="20"' + (pageSize === 20 ? ' selected' : '') + '>20</option>' +
+                '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+                '</select> 条</label></div>';
+            $('.pagination-bar').html(html);
+        }
+
+        function updatePagination(total, page, size) {
+            totalCount = total;
+            totalPages = Math.max(1, Math.ceil(total / size));
+            currentPage = page;
+            renderPaginationBar();
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) {
+                return;
+            }
+            loadConditions(page);
+        }
+
+        function changePageSize(size) {
+            pageSize = parseInt(size, 10);
+            filterChange();
+        }
+
+        function changePage(delta) {
+            var target = currentPage + delta;
+            if (target < 1 || target > totalPages) {
+                return;
+            }
+            loadConditions(target);
+        }
+
+        function getEnableFilterParam() {
+            var v = $('#enableFilter').val();
+            if (v === 'true') {
+                return true;
+            }
+            if (v === 'false') {
+                return false;
+            }
+            return null;
+        }
+
+        function filterChange() {
+            currentPage = 1;
+            loadConditions(1, false);
+        }
+
+        function updateBrandInterestLink() {
+            var brand = $('#brandSelect option:selected').val() || '';
+            if (brand && brand !== '全部') {
+                $('#brandinterest').html('<a href="' + API_PREFIX + '/interest/item/brand/' + encodeURIComponent(brand) + '" target="_blank">品牌关注</a>');
+            } else {
+                $('#brandinterest').html('');
+            }
+        }
+
+        function loadConditions(page, keepScroll) {
+            if (keepScroll === undefined) {
+                keepScroll = page === currentPage;
+            }
+            var scrollY = keepScroll ? window.scrollY : null;
+            var brand = $('#brandSelect option:selected').val() || '';
+            var data = { brand: brand, page: page, pageSize: pageSize };
+            var enable = getEnableFilterParam();
+            if (enable !== null) {
+                data.enable = enable;
+            }
+            $.ajax({
+                url: API_PREFIX + '/searchCondition/page',
+                type: 'get',
+                dataType: 'json',
+                data: data,
+                success: function (result) {
+                    updateBrandInterestLink();
+                    conditionsById = {};
+                    var html = '';
+                    if (!result.records || result.records.length === 0) {
+                        html = '<div class="empty-list">暂无关键字数据</div>';
+                    } else {
+                        html = '<div class="card-list">';
+                        for (var i = 0; i < result.records.length; i++) {
+                            conditionsById[result.records[i].id] = result.records[i];
+                            html += renderCard(result.records[i]);
+                        }
+                        html += '</div>';
+                    }
+                    $('#conditionList').html(html);
+                    $('#conditionList .btn-copy').on('click', function () {
+                        copyText($(this).attr('data-copy'));
+                    });
+                    updatePagination(result.total, result.page, result.pageSize);
+                    if (keepScroll) {
+                        window.scrollTo(0, scrollY);
+                        requestAnimationFrame(function () {
+                            window.scrollTo(0, scrollY);
+                        });
+                    } else {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }
+            });
+        }
+
+        function enableCondition(id) {
+            $.get(API_PREFIX + '/enableSearchCondition?conditionId=' + id, function () {
+                loadConditions(currentPage, true);
+            });
+        }
+
+        function disableCondition(id) {
+            $.get(API_PREFIX + '/disableSearchCondition?conditionId=' + id, function () {
+                loadConditions(currentPage, true);
+            });
+        }
+
+        function deleteCondition(id) {
+            if (!confirm('确定删除该关键字吗？相关抓取记录也会一并删除。')) {
+                return;
+            }
+            $.get(API_PREFIX + '/deleteSearchCondition?conditionId=' + id, function (msg) {
+                alert(msg);
+                loadConditions(currentPage);
+            });
+        }
+
+        function editDuration(id, currentDuration) {
+            var duration = prompt('请输入查询间隔（分钟）', currentDuration);
+            if (duration == null || duration === '') {
+                return;
+            }
+            if (!/^\d+$/.test(duration) || parseInt(duration, 10) < 1) {
+                alert('请输入大于0的整数');
+                return;
+            }
+            $.get(API_PREFIX + '/updateDuration?conditionId=' + id + '&duration=' + duration, function (msg) {
+                alert(msg);
+                loadConditions(currentPage);
+            });
+        }
+
+        function fillBrandDatalist() {
+            var $list = $('#brandList');
+            $list.empty();
+            $('#brandSelect option').each(function () {
+                var val = $(this).val();
+                if (val && val !== '全部') {
+                    $list.append('<option value="' + escapeHtml(val) + '">');
+                }
+            });
+        }
+
+        function openCreateModal() {
+            $('#createForm')[0].reset();
+            fillBrandDatalist();
+            var currentBrand = $('#brandSelect option:selected').val();
+            if (currentBrand && currentBrand !== '全部') {
+                $('#createBrand').val(currentBrand);
+            }
+            $('#createDuration').val(120);
+            $('#createPageSize').val(100);
+            $('#createEnable').prop('checked', false);
+            $('#createModal').addClass('open');
+        }
+
+        function closeCreateModal() {
+            $('#createModal').removeClass('open');
+        }
+
+        function submitCreate() {
+            var brand = $('#createBrand').val().trim();
+            var description = $('#createDescription').val().trim();
+            var keyword = $('#createKeyword').val().trim();
+            var duration = parseInt($('#createDuration').val(), 10);
+            var searchCategory = $('#createSearchCategory').val().trim();
+            var pageSizeVal = parseInt($('#createPageSize').val(), 10);
+            var enable = $('#createEnable').is(':checked');
+            if (!brand) {
+                alert('请选择品牌');
+                return;
+            }
+            if (!description) {
+                alert('请填写描述');
+                return;
+            }
+            if (!keyword) {
+                alert('请填写关键字');
+                return;
+            }
+            $.post(API_PREFIX + '/searchCondition/create', {
+                brand: brand,
+                description: description,
+                keyword: keyword,
+                duration: duration,
+                searchCategory: searchCategory,
+                pageSize: pageSizeVal,
+                enable: enable
+            }, function (msg) {
+                alert(msg);
+                closeCreateModal();
+                filterChange();
+            });
+        }
+
+        function openEditModal(id) {
+            var condition = conditionsById[id];
+            if (!condition) {
+                alert('数据未加载，请刷新页面');
+                return;
+            }
+            $('#editConditionId').val(condition.id);
+            $('#editDescription').text((condition.description || '') + '（' + (condition.brand || '') + '）');
+            $('#editKeyword').val(condition.keyword || '');
+            $('#editModal').addClass('open');
+        }
+
+        function closeEditModal() {
+            $('#editModal').removeClass('open');
+        }
+
+        function submitEdit() {
+            var conditionId = $('#editConditionId').val();
+            var keyword = $('#editKeyword').val().trim();
+            if (!keyword) {
+                alert('请填写关键字');
+                return;
+            }
+            $.post(API_PREFIX + '/searchCondition/updateKeyword', {
+                conditionId: conditionId,
+                keyword: keyword
+            }, function (msg) {
+                alert(msg);
+                closeEditModal();
+                loadConditions(currentPage);
+            });
+        }
+
+        $(function () {
+            loadConditions(1);
+            initPlatformCosmeMatch({
+                apiPrefix: API_PREFIX,
+                brandSelect: '#brandSelect',
+                reloadList: function () { loadConditions(currentPage); },
+                extraModalSelectors: '#createModal, #editModal'
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="page">
+    <nav class="platform-nav">
+        <a href="/mercari">煤炉</a>
+        <a href="/yahoo" class="active">雅虎</a>
+        <a href="/rakuten">乐天</a>
+        <a href="/cosme">@cosme</a>
+    </nav>
+
+    <div class="page-header">
+        <h1>雅虎助手 · 关键字管理</h1>
+    </div>
+
+    <div class="toolbar">
+        <label for="brandSelect">品牌筛选</label>
+        <select id="brandSelect" name="brandSelect" onchange="filterChange()">
+            <option th:each="item : ${brand}" th:value="${item}" th:text="${item}"></option>
+        </select>
+        <label for="enableFilter">启用状态</label>
+        <select id="enableFilter" name="enableFilter" onchange="filterChange()">
+            <option value="">全部</option>
+            <option value="true">已启用</option>
+            <option value="false">已禁用</option>
+        </select>
+        <div class="toolbar-links">
+            <button type="button" class="btn btn-primary" onclick="openCreateModal()">新增关键字</button>
+            <button type="button" class="btn" onclick="openCosmeBatchMatchModal()">Cosme 批量匹配</button>
+            <a href="/cosme" target="_blank">@cosme 挑选</a>
+            <a th:href="@{/yahoo/interest/item/-1}" target="_blank">全部关注</a>
+            <span id="brandinterest"></span>
+        </div>
+    </div>
+
+    <div class="pagination pagination-bar pagination-top"></div>
+    <div id="conditionList"></div>
+    <div class="pagination pagination-bar pagination-bottom"></div>
+</div>
+
+<div class="modal-overlay" id="createModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>新增关键字</h2>
+            <button type="button" class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <form id="createForm" onsubmit="submitCreate(); return false;">
+            <div class="modal-body">
+                <div class="form-field">
+                    <label for="createBrand">品牌</label>
+                    <input id="createBrand" list="brandList" type="text" placeholder="选择或输入品牌 slug" required>
+                    <datalist id="brandList"></datalist>
+                </div>
+                <div class="form-field">
+                    <label for="createDescription">描述</label>
+                    <input id="createDescription" type="text" maxlength="50" placeholder="中文简称" required>
+                </div>
+                <div class="form-field">
+                    <label for="createKeyword">关键字</label>
+                    <input id="createKeyword" type="text" placeholder="雅虎搜索用关键词" required>
+                </div>
+                <div class="form-field">
+                    <label for="createDuration">查询间隔（分钟）</label>
+                    <input id="createDuration" type="number" min="1" value="120" required>
+                </div>
+                <div class="form-field">
+                    <label for="createSearchCategory">搜索类别</label>
+                    <input id="createSearchCategory" type="text" placeholder="可选，多个用逗号分隔">
+                </div>
+                <div class="form-field">
+                    <label for="createPageSize">每页抓取条数</label>
+                    <input id="createPageSize" type="number" min="1" value="100" required>
+                </div>
+                <div class="form-field">
+                    <label class="form-check">
+                        <input id="createEnable" type="checkbox" style="width:auto;">
+                        创建后立即启用定时抓取
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeCreateModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>编辑关键字</h2>
+            <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form onsubmit="submitEdit(); return false;">
+            <div class="modal-body">
+                <input type="hidden" id="editConditionId">
+                <div class="form-field">
+                    <label>当前记录</label>
+                    <div id="editDescription" class="hint" style="font-size:14px;color:var(--text);"></div>
+                </div>
+                <div class="form-field">
+                    <label for="editKeyword">关键字</label>
+                    <input id="editKeyword" type="text" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="closeEditModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cosmeBatchMatchModal">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Cosme 批量匹配</h2>
+            <button type="button" class="modal-close" onclick="closeCosmeBatchMatchModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label>处理范围</label>
+                <div class="form-check-group">
+                    <div class="cosme-batch-option">
+                        <label class="form-check">
+                            <input type="radio" name="cosmeBatchMode" value="limit" checked onchange="onCosmeBatchModeChange()">
+                            指定数量
+                        </label>
+                        <input type="number" id="cosmeBatchLimit" value="30" min="1" max="9999">
+                        <span class="hint">条未关联关键字</span>
+                    </div>
+                    <label class="form-check">
+                        <input type="radio" name="cosmeBatchMode" value="all" onchange="onCosmeBatchModeChange()">
+                        全部未关联
+                    </label>
+                </div>
+            </div>
+            <div class="form-field">
+                <div class="hint">
+                    按当前品牌筛选，从 ID 新到旧处理。<br>
+                    相似度 &gt;80% 自动关联；≤80% 弹窗确认首个搜索结果。<br>
+                    Cosme 无结果标记「暂无匹配」；「不进行关联」的不再重复出现。
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="closeCosmeBatchMatchModal()">取消</button>
+            <button type="button" class="btn btn-primary" id="cosmeBatchSubmitBtn" onclick="submitCosmeBatchMatch()">开始匹配</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cosmeMatchModal">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 id="cosmeMatchModalTitle">Cosme 匹配待确认</h2>
+            <button type="button" class="modal-close" onclick="closeCosmeMatchModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="cosmeMatchBody"></div>
+        <div class="modal-footer" id="cosmeMatchModalFooter">
+            <button type="button" class="btn" onclick="closeCosmeMatchModal()">关闭</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

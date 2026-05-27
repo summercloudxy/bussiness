@@ -29,8 +29,6 @@ public class MercariPageController {
     public String index(Model model){
         List<String> mercariBrandList = getMercariBrandList();
         model.addAttribute("brand",mercariBrandList);
-        List<MercariSearchCondition> mercariKeyWord = mercariRestController.getSearchConditionList(null);
-        model.addAttribute("searchConditions",mercariKeyWord);
         return "/mercari";
     }
 
@@ -71,6 +69,7 @@ public class MercariPageController {
         model.addAttribute("brand","empty");
         model.addAttribute("conditionId",conditionId);
         model.addAttribute("itemList",interestItem);
+        model.addAttribute("pageTitle", resolveInterestPageTitle(conditionId, null));
         return "/mercariitem";
     }
 
@@ -81,7 +80,26 @@ public class MercariPageController {
         model.addAttribute("itemList",interestItem);
         model.addAttribute("brand",brand);
         model.addAttribute("conditionId","empty");
+        model.addAttribute("pageTitle", resolveInterestPageTitle(null, brand));
         return "/mercariitem";
+    }
+
+    private String resolveInterestPageTitle(Integer conditionId, String brand) {
+        if (StringUtils.isNotBlank(brand) && !"empty".equals(brand)) {
+            return "已关注产品 · " + brand;
+        }
+        if (conditionId != null && conditionId == -1) {
+            return "已关注产品 · 全部";
+        }
+        if (conditionId != null) {
+            MercariSearchCondition condition = mercariSearchConditionService.getById(conditionId);
+            if (condition != null) {
+                String label = StringUtils.isNotBlank(condition.getDescription())
+                        ? condition.getDescription() : condition.getKeyword();
+                return "已关注产品 · " + label;
+            }
+        }
+        return "已关注产品";
     }
 
 

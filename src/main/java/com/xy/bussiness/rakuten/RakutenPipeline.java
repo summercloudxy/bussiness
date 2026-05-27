@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.xy.bussiness.mercari.mybean.ItemRecord;
 import com.xy.bussiness.notification.NotifySender;
+import com.xy.bussiness.notification.NotificationLinks;
 import com.xy.bussiness.notification.wechat.NotifyImageUrls;
 import com.xy.bussiness.notification.wechat.WeChatPlatform;
 import com.xy.bussiness.notification.wechat.WeChatMarkdownLinks;
@@ -149,18 +150,18 @@ public class RakutenPipeline implements Pipeline {
     public boolean sendNewMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> newItems) throws Exception {
         String description = searchCondition.getDescription();
         String topic = "乐天:" + searchCondition.getBrand() + description + "上新啦";
-        return notifySender.send(topic, getNewContent(newItems), getNewWeChatContent(newItems),
+        return notifySender.send(topic, getNewContent(searchCondition, newItems), getNewWeChatContent(searchCondition, newItems),
                 buildRakutenNewsArticles(newItems, true), WeChatPlatform.RAKUTEN, 0);
     }
 
     public boolean sendPriceMail(RakutenSearchCondition searchCondition, List<RakutenItemRecord> priceItems) throws Exception {
         String topic = "乐天:" + searchCondition.getBrand() + searchCondition.getDescription() + "的这些商品降价啦";
-        return notifySender.send(topic, getPriceContent(priceItems), getPriceWeChatContent(priceItems),
+        return notifySender.send(topic, getPriceContent(searchCondition, priceItems), getPriceWeChatContent(searchCondition, priceItems),
                 buildRakutenNewsArticles(priceItems, false), WeChatPlatform.RAKUTEN, 0);
     }
 
 
-    public String getNewContent(List<RakutenItemRecord> recordList) {
+    public String getNewContent(RakutenSearchCondition searchCondition, List<RakutenItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (RakutenItemRecord record : recordList) {
@@ -190,21 +191,22 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/rakuten/setInterest?interest=1&itemId=");
-            stringBuilder.append(record.getItemId());
-            stringBuilder.append("'>添加关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/rakuten/setInterest?interest=1&itemId=" + record.getItemId())).append("'>添加关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "rakuten",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
 
-    public String getPriceContent(List<RakutenItemRecord> recordList) {
+    public String getPriceContent(RakutenSearchCondition searchCondition, List<RakutenItemRecord> recordList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<html><head><META http-equiv=Content-Type content='text/html; charset=UTF-8'></head><body>");
         for (RakutenItemRecord record : recordList) {
@@ -240,33 +242,38 @@ public class RakutenPipeline implements Pipeline {
             stringBuilder.append("</div>");
 
             stringBuilder.append("<div>");
-            stringBuilder.append("<a href='https://" + notifyHost + "/rakuten/setInterest?interest=0&itemId=");
-            stringBuilder.append(record.getItemId());
-            stringBuilder.append("'>不再关注</a>");
+            stringBuilder.append("<a href='").append(NotificationLinks.url(notifyHost,
+                    "/rakuten/setInterest?interest=0&itemId=" + record.getItemId())).append("'>不再关注</a>");
             stringBuilder.append("</div>");
 
             stringBuilder.append("</div>");
             stringBuilder.append("</div>");
 
         }
+        NotificationLinks.appendDisableKeywordMailFooter(stringBuilder, notifyHost, "rakuten",
+                searchCondition.getId(), searchCondition.getDescription());
         stringBuilder.append("</body><html>");
         return stringBuilder.toString();
     }
 
-    private String getNewWeChatContent(List<RakutenItemRecord> recordList) {
+    private String getNewWeChatContent(RakutenSearchCondition searchCondition, List<RakutenItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (RakutenItemRecord record : recordList) {
             appendRakutenItemMarkdown(sb, record, true);
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "rakuten",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
-    private String getPriceWeChatContent(List<RakutenItemRecord> recordList) {
+    private String getPriceWeChatContent(RakutenSearchCondition searchCondition, List<RakutenItemRecord> recordList) {
         StringBuilder sb = new StringBuilder();
         for (RakutenItemRecord record : recordList) {
             appendRakutenItemMarkdown(sb, record, false);
             sb.append("- 价格：").append(record.getOriginPrice()).append(" → ").append(record.getCurrentPrice()).append("\n\n");
         }
+        NotificationLinks.appendDisableKeywordMarkdown(sb, notifyHost, "rakuten",
+                searchCondition.getId(), searchCondition.getDescription());
         return sb.toString();
     }
 
@@ -280,8 +287,8 @@ public class RakutenPipeline implements Pipeline {
         WeChatMarkdownLinks.appendThreeLinks(sb,
                 record.getItemUrl(),
                 SHUNTONG_RAKUTEN_URL + record.getItemId(),
-                "https://" + notifyHost + "/rakuten/setInterest?interest=" + interest
-                        + "&itemId=" + record.getItemId(),
+                NotificationLinks.url(notifyHost, "/rakuten/setInterest?interest=" + interest
+                        + "&itemId=" + record.getItemId()),
                 interestLabel);
         sb.append("\n");
     }
